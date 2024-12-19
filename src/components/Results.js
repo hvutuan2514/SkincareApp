@@ -1,3 +1,4 @@
+// Results.js
 import React from 'react';
 import { useLocation } from 'react-router-dom';
 import styled from 'styled-components';
@@ -50,6 +51,82 @@ const Ingredient = styled.li`
   border-radius: 4px;
 `;
 
+const ProductCard = styled.div`
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+`;
+
+const ProductSection = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+`;
+
+const ImageContainer = styled.div`
+  position: relative;
+  width: 100%;
+  padding-top: 100%; 
+  margin-bottom: 15px;
+`;
+
+const ProductImage = styled.img`
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain; 
+  border-radius: 4px;
+`;
+
+const ProductLink = styled.a`
+  display: inline-block;
+  margin-top: 10px;
+  padding: 8px 16px;
+  background-color: #4CAF50;
+  color: white;
+  text-decoration: none;
+  border-radius: 4px;
+  &:hover {
+    background-color: #45a049;
+  }
+`;
+
+const getRecommendedProducts = (ingredients) => {
+  const productDatabase = {
+    'Salicylic Acid': [
+      {
+        name: 'CeraVe Acne Control Cleanser',
+        price: 14.24,
+        image: 'https://www.cerave.com/-/media/project/loreal/brand-sites/cerave/americas/us/skincare/cleansers/acne-salicylic-acid-cleanser/acne-control-cleanser/desktop-700x785/acne-control-cleanser-packshot-desktop-700x785-v1.jpg?rev=85ca2b20496a42419b8ddf50200b483d&w=500&hash=3BB1AACFCDD161F5D9C9DD8E962E4860',
+        link: 'https://www.cerave.com/skincare/cleansers/acne-salicylic-acid-cleanser',
+        retailer: 'CeraVe'
+      }
+    ],
+    'Niacinamide': [
+      {
+        name: 'The Ordinary Niacinamide 10% + Zinc 1%',
+        price: 6.00,
+        image: 'https://theordinary.com/dw/image/v2/BFKJ_PRD/on/demandware.static/-/Sites-deciem-master/default/dwce8a7cdf/Images/products/The%20Ordinary/rdn-niacinamide-10pct-zinc-1pct-30ml.png?sw=860&sh=860&sm=fit',
+        link: 'https://theordinary.com/en-us/niacinamide-10-zinc-1-serum-100436.html?dwvar_100436_size=30ml&quantity=1&gQT=1',
+        retailer: 'The Ordinary'
+      }
+    ],
+    // Add more products for other ingredients
+  };
+
+  let recommendedProducts = [];
+  ingredients.forEach(ingredient => {
+    if (productDatabase[ingredient.name]) {
+      recommendedProducts = [...recommendedProducts, ...productDatabase[ingredient.name]];
+    }
+  });
+
+  return recommendedProducts;
+};
+
 function Results() {
   const location = useLocation();
   const { formData } = location.state || { formData: {} };
@@ -61,7 +138,8 @@ function Results() {
       oily: [
         { name: 'Salicylic Acid', benefit: 'Unclogs pores and reduces oil production' },
         { name: 'Niacinamide', benefit: 'Controls oil production and reduces inflammation' },
-        { name: 'Tea Tree Oil', benefit: 'Natural antibacterial properties' }
+        { name: 'Tea Tree Oil', benefit: 'Natural antibacterial properties' },
+        { name: 'Retinoid', benefit: 'Brightens skin and reduces fine lines' }
       ],
       dry: [
         { name: 'Hyaluronic Acid', benefit: 'Deeply hydrates and plumps skin' },
@@ -123,6 +201,7 @@ function Results() {
   };
 
   const recommendedIngredients = getRecommendedIngredients();
+  const recommendedProducts = getRecommendedProducts(recommendedIngredients);
 
   return (
     <ResultsContainer>
@@ -154,8 +233,27 @@ function Results() {
           ))}
         </IngredientList>
       </Section>
+      
+      <Section>
+        <h2>Recommended Products</h2>
+        <ProductSection>
+          {recommendedProducts.map((product, index) => (
+            <ProductCard key={index}>
+              <ImageContainer>
+                <ProductImage src={product.image} alt={product.name} />
+              </ImageContainer>
+              <h3>{product.name}</h3>
+              <p><strong>Price:</strong> ${product.price}</p>
+              <p><strong>Retailer:</strong> {product.retailer}</p>
+              <ProductLink href={product.link} target="_blank" rel="noopener noreferrer">
+                Buy Now
+              </ProductLink>
+            </ProductCard>
+          ))}
+        </ProductSection>
+      </Section>
     </ResultsContainer>
-  );
+  );                                
 }
 
 export default Results;
