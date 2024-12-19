@@ -55,18 +55,22 @@ function SkinQuiz() {
     skinColor: '',
     isSensitive: false,
     skinConcerns: [],
+    acneType: '',
     routine: []
   });
 
   const skinConcerns = [
     'Acne',
-    'Dark spots',
-    'Fine lines',
+    'Anti-aging',
+    'Blackheads / Whiteheads',
+    'Dark circles',
+    'Dehydration',
+    'Dullness',
+    'Dark spots / Hyperpigmentation',
+    'Fine lines / Wrinkles',
     'Large pores',
-    'Dryness',
-    'Oiliness',
-    'Redness',
-    'Uneven texture'
+    'Textured Skin',
+    'Uneven Skin Tone'
   ];
 
   const routineSteps = [
@@ -163,6 +167,21 @@ function SkinQuiz() {
           ))}
         </CheckboxGroup>
       </QuestionSection>
+
+      {formData.skinConcerns.includes('Acne') && (
+        <QuestionSection>
+          <h2>What type of acne do you have?</h2>
+          <Select
+            value={formData.acneType}
+            onChange={(e) => setFormData({...formData, acneType: e.target.value})}
+            required
+          >
+            <option value="">Select your acne type</option>
+            <option value="red-inflamed">Red, inflamed bumps</option>
+            <option value="pus-filled">Pus-filled pimples</option>
+          </Select>
+        </QuestionSection>
+      )}
 
       <QuestionSection>
         <h2>What steps do you use in your skincare routine?</h2>
