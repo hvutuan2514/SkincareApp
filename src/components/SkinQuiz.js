@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
+import supabase from '../config/supabaseClient';
 
 const Form = styled.form`
   display: flex;
