@@ -1,5 +1,5 @@
 // SkinQuiz.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import supabase from '../config/supabaseClient';
@@ -59,6 +59,32 @@ function SkinQuiz() {
     acneType: '',
     routine: []
   });
+
+  //Import Supabase skin concerns - WIP
+  //ISSUE - Not fetching data - Array length = 0  
+      //To see Console log, on Chrome do CTRL+Shift+I
+      
+  /*
+  const [skinConcerns, setSkinConcerns] = useState([]); // State to hold skin concerns from Supabase
+  // Fetch skin concerns from Supabase
+  useEffect(() => {
+    const fetchSkinConcerns = async () => {
+      const { data, error } = await supabase
+        .from('skin_concerns') //Name of table
+        .select('id, name'); //name of fields
+
+      if (error) {
+        console.error('Error fetching skin concerns:', error);
+      } else {
+        setSkinConcerns(data); // Set the fetched skin concerns to the state
+        console.log("Successful fetch: ", data);
+        //ISSUE: Not fetching data - Array length = 0
+      }
+    };
+
+    fetchSkinConcerns();
+  }, []);
+  */
 
   const skinConcerns = [
     'Acne',
