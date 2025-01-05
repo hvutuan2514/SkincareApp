@@ -29,13 +29,6 @@ const Select = styled.select`
   margin-top: 8px;
 `;
 
-const CheckboxGroup = styled.div`
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-  text-align: left;
-`;
-
 const Button = styled.button`
   padding: 15px 30px;
   background-color: #4CAF50;
@@ -49,6 +42,31 @@ const Button = styled.button`
   }
 `;
 
+//General method to load data from Supabase
+const useFetchSupabaseData = (table, fields) => {
+  const [data, setData] = useState([]);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const { data: fetchedData, error } = await supabase
+        .from(table)
+        .select(fields);
+
+      if (error) {
+        console.error(`Error fetching ${table}:`, error);
+        setError(error);
+      } else {
+        setData(fetchedData);
+      }
+    };
+
+    fetchData();
+  }, [table, fields]);
+
+  return { data, error };
+};
+
 function SkinQuiz() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -60,39 +78,35 @@ function SkinQuiz() {
     routine: []
   });
       
-  const [skinConcerns, setSkinConcerns] = useState([]); // State to hold skin concerns from Supabase
-  
-  // Fetch skin concerns from Supabase
-  useEffect(() => {
-    const fetchSkinConcerns = async () => {
-      const { data, error } = await supabase
-        .from('skin_concerns') //Name of table
-        .select('id, name'); //name of fields
-        
-      if (error) {
-        console.error('Error fetching skin concerns:', error);
-      } else {
-        setSkinConcerns(data.map(concern => concern.name));
-      }
-    };
-
-    fetchSkinConcerns();
-  }, []);
-
-  const routineSteps = [
-    'Cleanser',
-    'Toner',
-    'Serum',
-    'Moisturizer',
-    'Sunscreen',
-    'Eye cream',
-    'Face masks',
-    'Exfoliator'
-  ];
+  //Load data from Supabase (calls general method)
+  const { data: skinConcerns, error: skinConcernsError } = useFetchSupabaseData('skin_concerns', 'id, name');
+  const { data: routineSteps, error: routineStepsError } = useFetchSupabaseData('routine_steps', 'id, name');
 
   const handleSubmit = (e) => {
     e.preventDefault();
     navigate('/results', { state: { formData } });
+  };
+
+  // Generalized CheckboxGroup method (displays skinConcerns, routineSteps, etc)
+  const renderCheckboxGroup = (options, selectedOptions, fieldName) => {
+    return (
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px', textAlign: 'left' }}>
+        {options.map((option, index) => (
+          <label key={index}> {}
+            <input
+              type="checkbox"
+              checked={selectedOptions.includes(option)} // Check if the option is in the selected options
+              onChange={(e) => {
+                const updatedOptions = e.target.checked
+                  ? [...selectedOptions, option] // Add the option to selected options if checked
+                  : selectedOptions.filter(o => o !== option); // Remove the option if unchecked
+                setFormData(prevData => ({ ...prevData, [fieldName]: updatedOptions })); // Update the formData field
+              }}
+            /> {option} {/* Render the option */}
+          </label>
+        ))}
+      </div>
+    );
   };
 
   return (
@@ -156,22 +170,11 @@ function SkinQuiz() {
       <QuestionSection>
         <h2>What are your skin concerns?</h2>
         <p>Select all that apply:</p>
-        <CheckboxGroup>
-          {skinConcerns.map(concern => (
-            <label key={concern}>
-              <input
-                type="checkbox"
-                checked={formData.skinConcerns.includes(concern)}
-                onChange={(e) => {
-                  const updatedConcerns = e.target.checked
-                    ? [...formData.skinConcerns, concern]
-                    : formData.skinConcerns.filter(c => c !== concern);
-                  setFormData({...formData, skinConcerns: updatedConcerns});
-                }}
-              /> {concern}
-            </label>
-          ))}
-        </CheckboxGroup>
+        {renderCheckboxGroup(
+          skinConcerns.map(concern => concern.name), // Map to get only the name from each object
+          formData.skinConcerns, // selectedOptions
+          'skinConcerns' // fieldName to update in formData
+        )}
       </QuestionSection>
 
       {formData.skinConcerns.includes('Acne') && (
@@ -192,24 +195,12 @@ function SkinQuiz() {
       <QuestionSection>
         <h2>What steps do you use in your skincare routine?</h2>
         <p>Select all that apply:</p>
-        <CheckboxGroup>
-          {routineSteps.map(step => (
-            <label key={step}>
-              <input
-                type="checkbox"
-                checked={formData.routine.includes(step)}
-                onChange={(e) => {
-                  const updatedRoutine = e.target.checked
-                    ? [...formData.routine, step]
-                    : formData.routine.filter(s => s !== step);
-                  setFormData({...formData, routine: updatedRoutine});
-                }}
-              /> {step}
-            </label>
-          ))}
-        </CheckboxGroup>
+        {renderCheckboxGroup(
+          routineSteps.map(step => step.name), // Map to get only the name from each object
+          formData.routine, // selectedOptions
+          'routine' // fieldName to update in formData
+        )}
       </QuestionSection>
-
       <Button type="submit">Get My Personalized Recommendations</Button>
     </Form>
   );
