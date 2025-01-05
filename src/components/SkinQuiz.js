@@ -59,46 +59,25 @@ function SkinQuiz() {
     acneType: '',
     routine: []
   });
-
-  //Import Supabase skin concerns - WIP
-  //ISSUE - Not fetching data - Array length = 0  
-      //To see Console log, on Chrome do CTRL+Shift+I
       
-  /*
   const [skinConcerns, setSkinConcerns] = useState([]); // State to hold skin concerns from Supabase
+  
   // Fetch skin concerns from Supabase
   useEffect(() => {
     const fetchSkinConcerns = async () => {
       const { data, error } = await supabase
         .from('skin_concerns') //Name of table
         .select('id, name'); //name of fields
-
+        
       if (error) {
         console.error('Error fetching skin concerns:', error);
       } else {
-        setSkinConcerns(data); // Set the fetched skin concerns to the state
-        console.log("Successful fetch: ", data);
-        //ISSUE: Not fetching data - Array length = 0
+        setSkinConcerns(data.map(concern => concern.name));
       }
     };
 
     fetchSkinConcerns();
   }, []);
-  */
-
-  const skinConcerns = [
-    'Acne',
-    'Anti-aging',
-    'Blackheads / Whiteheads',
-    'Dark circles',
-    'Dehydration',
-    'Dullness',
-    'Dark spots / Hyperpigmentation',
-    'Fine lines / Wrinkles',
-    'Large pores',
-    'Textured Skin',
-    'Uneven Skin Tone'
-  ];
 
   const routineSteps = [
     'Cleanser',
