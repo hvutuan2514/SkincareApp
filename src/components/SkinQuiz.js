@@ -81,6 +81,8 @@ function SkinQuiz() {
   //Load data from Supabase (calls general method)
   const { data: skinConcerns, error: skinConcernsError } = useFetchSupabaseData('skin_concerns', 'id, name');
   const { data: routineSteps, error: routineStepsError } = useFetchSupabaseData('routine_steps', 'id, name');
+  const { data: skinTypes, error: skinTypesError } = useFetchSupabaseData('skin_type', 'id, name'); 
+  const { data: skinColors, error: skinColorsError } = useFetchSupabaseData('skin_color', 'id, name'); 
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -119,11 +121,13 @@ function SkinQuiz() {
           required
         >
           <option value="">Select your skin type</option>
-          <option value="oily">Oily</option>
-          <option value="dry">Dry</option>
-          <option value="combination">Combination</option>
-          <option value="normal">Normal</option>
+          {skinTypes && skinTypes.map(skinType => (
+            <option key={skinType.id} value={skinType.name}>
+              {skinType.name}
+            </option>
+          ))}
         </Select>
+        {skinTypesError && <p style={{ color: 'red' }}>Failed to load skin types: {skinTypesError.message}</p>}
       </QuestionSection>
 
       <QuestionSection>
@@ -133,13 +137,11 @@ function SkinQuiz() {
           onChange={(e) => setFormData({...formData, skinColor: e.target.value})}
           required
         >
-          <option value="">Select your skin color</option>
-          <option value="fair">Fair</option>
-          <option value="light">Light</option>
-          <option value="medium">Medium</option>
-          <option value="olive">Olive</option>
-          <option value="tan">Tan</option>
-          <option value="deep">Deep</option>
+          {skinColors && skinColors.map(skinColor => (
+            <option key={skinColor.id} value={skinColor.name}>
+              {skinColor.name}
+            </option>
+          ))}
         </Select>
       </QuestionSection>
 
@@ -171,9 +173,9 @@ function SkinQuiz() {
         <h2>What are your skin concerns?</h2>
         <p>Select all that apply:</p>
         {renderCheckboxGroup(
-          skinConcerns.map(concern => concern.name), // Map to get only the name from each object
-          formData.skinConcerns, // selectedOptions
-          'skinConcerns' // fieldName to update in formData
+          skinConcerns.map(concern => concern.name), 
+          formData.skinConcerns,
+          'skinConcerns'
         )}
       </QuestionSection>
 
