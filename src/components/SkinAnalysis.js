@@ -24,6 +24,20 @@ const PreviewImage = styled.img`
   border-radius: 8px;
 `;
 
+const AnalysisContainer = styled.div`
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  line-height: 1.6;
+`;
+
+const AnalysisText = styled.div`
+  white-space: pre-line;
+  color: #2c3e50;
+  font-size: 16px;
+`;
+
 function SkinAnalysis() {
   const [image, setImage] = useState(null);
   const [analysis, setAnalysis] = useState(null);
@@ -48,7 +62,14 @@ function SkinAnalysis() {
         const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
         
         const prompt = `Analyze this facial image and identify skin concerns from the following list: ${concernsList}. 
-                       Provide a detailed analysis of visible skin conditions and match them with the concerns listed.`;
+                       Provide a structured analysis in the following format:
+                        Primary Concerns:
+                        - [List main visible skin concerns]
+
+                        Secondary Concerns:
+                        - [List potential or less visible concerns]
+                        
+                        Do not change the font.`;
         
         const result = await model.generateContent([
           prompt,
@@ -93,10 +114,12 @@ function SkinAnalysis() {
       
       {loading && <p>Analyzing your skin...</p>}
       {analysis && (
-        <div>
-          <h3>Analysis Results:</h3>
-          <p>{analysis}</p>
-        </div>
+        <AnalysisContainer>
+          <h3>Analysis Results</h3>
+          <AnalysisText>
+            {analysis}
+          </AnalysisText>
+        </AnalysisContainer>
       )}
     </Container>
   );
