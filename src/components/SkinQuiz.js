@@ -143,6 +143,7 @@ function SkinQuiz() {
             </option>
           ))}
         </Select>
+        {skinColorsError && <p style={{ color: 'red' }}>Failed to load skin colors: {skinColorsError.message}</p>}
       </QuestionSection>
 
       <QuestionSection>
