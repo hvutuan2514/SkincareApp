@@ -5,3 +5,4 @@ npm start
 
 products dataset imported into supabase: https://www.kaggle.com/datasets/eward96/skincare-products-clean-dataset
 
+Skin Analyzer API: https://console.faceplusplus.com/documents/129100210
