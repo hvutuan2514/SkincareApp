@@ -211,16 +211,22 @@ function Results() {
           <p><strong>Skin Type:</strong> {formData.skinType}</p>
           <p><strong>Skin Color:</strong> {formData.skinColor}</p>
           <p><strong>Sensitive Skin:</strong> {formData.isSensitive ? 'Yes' : 'No'}</p>
-          <p><strong>Your Skin Concerns:</strong></p>
-          <ConcernsList>
-            {formData.skinConcerns.map((concern, index) => (
-              <ConcernItem key={index}>{concern}</ConcernItem>
-            ))}
-          </ConcernsList>
+          <p>
+            <strong>Your Skin Concerns:</strong>{" "}
+            {formData.skinConcerns && formData.skinConcerns.length > 0 ? null : "None"} {/*No Skin Concerns = "None"*/}
+          </p>
+          {formData.skinConcerns && formData.skinConcerns.length > 0 && ( 
+            <ConcernsList>  {/*Display Concerns*/}
+              {formData.skinConcerns.map((concern, index) => (  
+                <ConcernItem key={index}>{concern}</ConcernItem>
+              ))}
+            </ConcernsList>
+          )}
           {formData.acneType && (
             <p><strong>Acne Type:</strong> {formData.acneType}</p>
           )}
         </UserProfile>
+
       </Section>
 
       <Section>
