@@ -305,11 +305,15 @@ function SkinAnalysis() {
           
           <AnalysisSection>
             <h3>Detected Concerns</h3>
-            <ConcernsList>
-              {analysis.concerns.map((concern, index) => (
-                <li key={index}>{concern.name}</li>
-              ))}
-            </ConcernsList>
+            {analysis.concerns.length === 0 ? (
+            <p>No concerns found. Your skin is clear!</p> //No concerns found.
+            ) : (
+              <ConcernsList> {/*Else, list concerns */}
+                {analysis.concerns.map((concern, index) => (
+                  <li key={index}>{concern.name}</li>
+                ))}
+              </ConcernsList>
+            )}
           </AnalysisSection>
         </AnalysisContainer>
       )}
