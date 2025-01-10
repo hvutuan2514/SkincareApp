@@ -237,6 +237,7 @@ function SkinAnalysis() {
     setImage(null);
     setAnalysis(null);
     setLoading(true);
+    setError(null);
 
     if (file) {
       const img = new Image();
@@ -287,7 +288,7 @@ function SkinAnalysis() {
         {image && <PreviewImage src={image} alt="Skin preview" />}
       </ImageUpload>
       
-      {loading && (
+      {loading && !error && (
         <LoadingSpinner>
           Analyzing your skin...
         </LoadingSpinner>

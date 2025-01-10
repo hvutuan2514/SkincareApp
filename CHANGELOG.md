@@ -4,5 +4,6 @@
     - Image uploaded is too big (Edge case) - Done
     - Image uploaded is too small (Edge case) - Done
     - Image uploaded has no face (Edge case) - Done
+    - Error & Analyzing skin messages never appear at the same time - Done
 - Results
     - If user picks no skin concerns, display "None" instead of nothing
