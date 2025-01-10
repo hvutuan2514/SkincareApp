@@ -137,6 +137,7 @@ function SkinQuiz() {
           onChange={(e) => setFormData({...formData, skinColor: e.target.value})}
           required
         >
+          <option value="">Select your skin color</option>
           {skinColors && skinColors.map(skinColor => (
             <option key={skinColor.id} value={skinColor.name}>
               {skinColor.name}

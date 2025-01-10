@@ -177,7 +177,7 @@ function Results() {
       ]
     };
 
-    if (formData.skinType) {
+    if (formData.skinType && skinTypeIngredients[formData.skinType]) {
       ingredients = [...ingredients, ...skinTypeIngredients[formData.skinType]];
     }
 
