@@ -8,3 +8,5 @@
     - If no concerns found, print "No concerns found" instead of nothing - Done
 - Results
     - If user picks no skin concerns, display "None" instead of nothing - Done
+- SkinQuiz
+    - Used skinConcernsError and routineStepsError 

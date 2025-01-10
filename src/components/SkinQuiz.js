@@ -174,10 +174,14 @@ function SkinQuiz() {
       <QuestionSection>
         <h2>What are your skin concerns?</h2>
         <p>Select all that apply:</p>
-        {renderCheckboxGroup(
-          skinConcerns.map(concern => concern.name), 
-          formData.skinConcerns,
-          'skinConcerns'
+        {skinConcernsError ? (
+          <p style={{ color: 'red' }}>Failed to load skin concerns: {skinConcernsError.message}</p>
+        ) : (
+          renderCheckboxGroup(
+            skinConcerns.map(concern => concern.name), 
+            formData.skinConcerns,
+            'skinConcerns'
+          )
         )}
       </QuestionSection>
 
@@ -199,10 +203,14 @@ function SkinQuiz() {
       <QuestionSection>
         <h2>What steps do you use in your skincare routine?</h2>
         <p>Select all that apply:</p>
-        {renderCheckboxGroup(
-          routineSteps.map(step => step.name), // Map to get only the name from each object
-          formData.routine, // selectedOptions
-          'routine' // fieldName to update in formData
+        {routineStepsError ? (
+          <p style={{ color: 'red' }}>Failed to load routine steps: {routineStepsError.message}</p>
+        ) : (
+          renderCheckboxGroup(
+            routineSteps.map(step => step.name), // Map to get only the name from each object
+            formData.routine, // selectedOptions
+            'routine' // fieldName to update in formData
+          )
         )}
       </QuestionSection>
       <Button type="submit">Get My Personalized Recommendations</Button>
