@@ -6,6 +6,7 @@
     "@google/generative-ai": "^0.21.0",
     "@supabase/supabase-js": "^2.47.10",
     "cra-template": "1.2.0",
+    "pica": "^9.0.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.0.2",

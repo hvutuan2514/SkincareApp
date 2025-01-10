@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import supabase from '../config/supabaseClient';
+import Pica from 'pica'; // Image resizing
 
 const Container = styled.div`
   max-width: 800px;
@@ -120,12 +121,20 @@ const LoadingSpinner = styled.div`
   font-size: 18px;
 `;
 
+const ErrorMessage = styled.div`
+  color: red;
+  text-align: center;
+  font-size: 18px;
+  padding: 20px;
+`;
+
 function SkinAnalysis() {
   const [image, setImage] = useState(null);
   const [analysis, setAnalysis] = useState(null);
   const [loading, setLoading] = useState(false);
   const [skinTypes, setSkinTypes] = useState([]);
   const [skinConcerns, setSkinConcerns] = useState([]);
+  const [error, setError] = useState(null);  
 
   useEffect(() => {
     fetchSkinData();
@@ -136,6 +145,26 @@ function SkinAnalysis() {
     const { data: concerns } = await supabase.from('skin_concerns').select('*');
     setSkinTypes(types);
     setSkinConcerns(concerns);
+  };
+
+  const compressImage = async (file) => {
+    const pica = new Pica();
+
+    const img = new Image();
+    img.src = URL.createObjectURL(file);
+    await img.decode();
+
+    const canvas = document.createElement('canvas');
+    const maxDimension = 4096;
+
+    const scale = Math.min(maxDimension / img.width, maxDimension / img.height, 1);
+    canvas.width = img.width * scale;
+    canvas.height = img.height * scale;
+
+    const resultCanvas = await pica.resize(img, canvas);
+    return new Promise((resolve) => {
+      resultCanvas.toBlob(resolve, file.type, 0.9); // Adjust quality as needed
+    });
   };
 
   const formatConcerns = (result) => {
@@ -150,6 +179,7 @@ function SkinAnalysis() {
 
   const analyzeSkin = async (imageFile) => {
     setLoading(true);
+    setError(null);  //Clear previous error msgs
     
     try {
       const formData = new FormData();
@@ -170,9 +200,17 @@ function SkinAnalysis() {
       });
 
       const data = await response.json();
+
+      // Print the entire API response to the console 
+      console.log('API Response:', data);
       
       if (data.error_message) {
-        throw new Error(data.error_message);
+        if (data.error_message === "NO_FACE_FOUND") {
+          setError("No face found in the image. Please upload an image with a visible face.");
+        } else {
+          throw new Error(data.error_message);
+        }
+        return; 
       }
 
       const detectedSkinType = skinTypes.find(
@@ -186,18 +224,39 @@ function SkinAnalysis() {
     } catch (error) {
       console.error('Error analyzing image:', error);
       setAnalysis(null);
+      setError(error.message || "An error occurred during the analysis.");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleImageUpload = (e) => {
+  const handleImageUpload = async (e) => {
     const file = e.target.files[0];
+
+    // Reset all fields from last analysis
+    setImage(null);
+    setAnalysis(null);
+    setLoading(true);
+
     if (file) {
-      setImage(URL.createObjectURL(file));
-      analyzeSkin(file);
+      const img = new Image();
+      img.src = URL.createObjectURL(file);
+  
+      //Case: Image is too small
+      img.onload = async () => {
+        if (img.naturalWidth < 200 || img.naturalHeight < 200) {
+          setError('The image is too small. Please upload an image bigger than 200x200 pixels.');
+          return;
+        }
+  
+        //Case: image is too big --> Pica compresses it
+        const compressedFile = await compressImage(file);
+        setImage(URL.createObjectURL(compressedFile));
+        analyzeSkin(compressedFile);
+      };
     }
   };
+  
 
   return (
     <Container>
@@ -233,6 +292,8 @@ function SkinAnalysis() {
           Analyzing your skin...
         </LoadingSpinner>
       )}
+
+      {error && <ErrorMessage>{error}</ErrorMessage>}
       
       {!loading && analysis && (
         <AnalysisContainer>
