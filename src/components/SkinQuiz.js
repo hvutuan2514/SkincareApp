@@ -42,7 +42,82 @@ const Button = styled.button`
   }
 `;
 
-//General method to load data from Supabase
+const concernSubQuestions = {
+  'Acne': {
+    question: 'What type of acne do you have?',
+    options: [
+      { value: 'red-inflamed', label: 'Red, inflamed bumps' },
+      { value: 'pus-filled', label: 'Pus-filled pimples' }
+    ]
+  },
+  'Dark Circles': {
+    question: 'What is the main cause of your dark circles?',
+    options: [
+      { value: 'lack-of-sleep', label: 'Lack of sleep' },
+      { value: 'genetics', label: 'Genetics' },
+      { value: 'sun-damage', label: 'Sun damage' },
+      { value: 'aging', label: 'Aging' }
+    ]
+  },
+  'Dark Spots': {
+    question: 'What caused your dark spots?',
+    options: [
+      { value: 'acne', label: 'Acne' },
+      { value: 'sun-damage', label: 'Sun damage' },
+      { value: 'pregnancy', label: 'Pregnancy' },
+      { value: 'aging', label: 'Aging' }
+    ]
+  },
+  'Forehead Pores': {
+    question: 'How enlarged are your forehead pores?',
+    options: [
+      { value: 'very-enlarged', label: 'Very enlarged' },
+      { value: 'enlarged', label: 'Enlarged' },
+      { value: 'slightly-enlarged', label: 'Slightly enlarged' }
+    ]
+  },
+  'Forehead Wrinkles': {
+    question: 'When did your forehead wrinkles start appearing?',
+    options: [
+      { value: 'prevent', label: 'Want to prevent early' },
+      { value: 'recent', label: 'Recently appeared' },
+      { value: 'long-term', label: 'Had them for years' }
+    ]
+  },
+  'Eye Fine Lines': {
+    question: 'When did your eye fine lines start appearing?',
+    options: [
+      { value: 'prevent', label: 'Want to prevent early' },
+      { value: 'recent', label: 'Recently appeared' },
+      { value: 'long-term', label: 'Had them for years' }
+    ]
+  },
+  'Left Cheek Pores': {
+    question: 'How enlarged are your left cheek pores?',
+    options: [
+      { value: 'very-enlarged', label: 'Very enlarged' },
+      { value: 'enlarged', label: 'Enlarged' },
+      { value: 'slightly-enlarged', label: 'Slightly enlarged' }
+    ]
+  },
+  'Right Cheek Pores': {
+    question: 'How enlarged are your right cheek pores?',
+    options: [
+      { value: 'very-enlarged', label: 'Very enlarged' },
+      { value: 'enlarged', label: 'Enlarged' },
+      { value: 'slightly-enlarged', label: 'Slightly enlarged' }
+    ]
+  },
+  'Jaw Pores': {
+    question: 'How enlarged are your jaw pores?',
+    options: [
+      { value: 'very-enlarged', label: 'Very enlarged' },
+      { value: 'enlarged', label: 'Enlarged' },
+      { value: 'slightly-enlarged', label: 'Slightly enlarged' }
+    ]
+  }
+};
+
 const useFetchSupabaseData = (table, fields) => {
   const [data, setData] = useState([]);
   const [error, setError] = useState(null);
@@ -74,37 +149,35 @@ function SkinQuiz() {
     skinColor: '',
     isSensitive: false,
     skinConcerns: [],
-    acneType: '',
+    concernTypes: {},
     routine: []
   });
-      
-  //Load data from Supabase (calls general method)
+
   const { data: skinConcerns, error: skinConcernsError } = useFetchSupabaseData('skin_concerns', 'id, name');
   const { data: routineSteps, error: routineStepsError } = useFetchSupabaseData('routine_steps', 'id, name');
-  const { data: skinTypes, error: skinTypesError } = useFetchSupabaseData('skin_type', 'id, name'); 
-  const { data: skinColors, error: skinColorsError } = useFetchSupabaseData('skin_color', 'id, name'); 
+  const { data: skinTypes, error: skinTypesError } = useFetchSupabaseData('skin_type', 'id, name');
+  const { data: skinColors, error: skinColorsError } = useFetchSupabaseData('skin_color', 'id, name');
 
   const handleSubmit = (e) => {
     e.preventDefault();
     navigate('/results', { state: { formData } });
   };
 
-  // Generalized CheckboxGroup method (displays skinConcerns, routineSteps, etc)
   const renderCheckboxGroup = (options, selectedOptions, fieldName) => {
     return (
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px', textAlign: 'left' }}>
         {options.map((option, index) => (
-          <label key={index}> {}
+          <label key={index}>
             <input
               type="checkbox"
-              checked={selectedOptions.includes(option)} // Check if the option is in the selected options
+              checked={selectedOptions.includes(option)}
               onChange={(e) => {
                 const updatedOptions = e.target.checked
-                  ? [...selectedOptions, option] // Add the option to selected options if checked
-                  : selectedOptions.filter(o => o !== option); // Remove the option if unchecked
-                setFormData(prevData => ({ ...prevData, [fieldName]: updatedOptions })); // Update the formData field
+                  ? [...selectedOptions, option]
+                  : selectedOptions.filter(o => o !== option);
+                setFormData(prevData => ({ ...prevData, [fieldName]: updatedOptions }));
               }}
-            /> {option} {/* Render the option */}
+            /> {option}
           </label>
         ))}
       </div>
@@ -178,26 +251,37 @@ function SkinQuiz() {
           <p style={{ color: 'red' }}>Failed to load skin concerns: {skinConcernsError.message}</p>
         ) : (
           renderCheckboxGroup(
-            skinConcerns.map(concern => concern.name), 
+            skinConcerns.map(concern => concern.name),
             formData.skinConcerns,
             'skinConcerns'
           )
         )}
       </QuestionSection>
 
-      {formData.skinConcerns.includes('Acne') && (
-        <QuestionSection>
-          <h2>What type of acne do you have?</h2>
-          <Select
-            value={formData.acneType}
-            onChange={(e) => setFormData({...formData, acneType: e.target.value})}
-            required
-          >
-            <option value="">Select your acne type</option>
-            <option value="red-inflamed">Red, inflamed bumps</option>
-            <option value="pus-filled">Pus-filled pimples</option>
-          </Select>
-        </QuestionSection>
+      {formData.skinConcerns.map(concern => 
+        concernSubQuestions[concern] && (
+          <QuestionSection key={concern}>
+            <h2>{concernSubQuestions[concern].question}</h2>
+            <Select
+              value={formData.concernTypes[concern] || ''}
+              onChange={(e) => setFormData({
+                ...formData,
+                concernTypes: {
+                  ...formData.concernTypes,
+                  [concern]: e.target.value
+                }
+              })}
+              required
+            >
+              <option value="">Select an option</option>
+              {concernSubQuestions[concern].options.map(option => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </Select>
+          </QuestionSection>
+        )
       )}
 
       <QuestionSection>
@@ -207,16 +291,16 @@ function SkinQuiz() {
           <p style={{ color: 'red' }}>Failed to load routine steps: {routineStepsError.message}</p>
         ) : (
           renderCheckboxGroup(
-            routineSteps.map(step => step.name), // Map to get only the name from each object
-            formData.routine, // selectedOptions
-            'routine' // fieldName to update in formData
+            routineSteps.map(step => step.name),
+            formData.routine,
+            'routine'
           )
         )}
       </QuestionSection>
+
       <Button type="submit">Get My Personalized Recommendations</Button>
     </Form>
   );
 }
 
 export default SkinQuiz;
-
