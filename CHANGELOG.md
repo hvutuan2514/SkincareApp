@@ -9,4 +9,8 @@
 - Results
     - If user picks no skin concerns, display "None" instead of nothing - Done
 - SkinQuiz
-    - Used skinConcernsError and routineStepsError 
+    - Used skinConcernsError and routineStepsError
+
+1/10/25 - Hannah
+- SkinQuiz.js: Added more questions for the skin quiz
+- Supabase: Completed the database with concern_to_ingredients and type_to_ingredients
