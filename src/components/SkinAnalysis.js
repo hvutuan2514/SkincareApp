@@ -128,6 +128,46 @@ const ErrorMessage = styled.div`
   padding: 20px;
 `;
 
+const fetchIngredients = async (skinType, isSensitive, concerns, concernTypes) => {
+    // Fetch skin type ingredients
+    const { data: typeIngredients } = await supabase
+      .from('type_to_ingredients')
+      .select(`
+        ingredients:ingredient_id (name)
+      `)
+      .eq('skin_type_id', skinType.id)
+      .eq('is_sensitive', isSensitive);
+  
+    // Fetch concern ingredients
+    const concernPromises = concerns.map(async (concern) => {
+      const subtype = concernTypes[concern.name] || 'general';
+      const { data: concernIngredients } = await supabase
+        .from('concern_to_ingredients')
+        .select(`
+            ingredients:ingredient_id (name)
+        `)
+        .eq('skin_concern_id', concern.id)
+        .eq('concern_subtype', subtype);
+
+      return concernIngredients || [];
+    });
+  
+    const concernIngredientsArrays = await Promise.all(concernPromises);
+    
+    // Combine all ingredients
+    const allIngredients = [
+        ...(typeIngredients || []),
+        ...(concernIngredientsArrays.flat() || [])
+    ];
+  
+    // Remove duplicates
+    const uniqueIngredients = [...new Set(allIngredients
+        .filter(i => i?.ingredients?.name)
+        .map(i => i.ingredients.name))];
+
+    return uniqueIngredients;
+  };
+
 function SkinAnalysis() {
   const [image, setImage] = useState(null);
   const [analysis, setAnalysis] = useState(null);
@@ -217,9 +257,19 @@ function SkinAnalysis() {
         type => type.api_value === data.result.skin_type.skin_type
       );
 
+      const detectedConcerns = formatConcerns(data.result);
+      
+      const ingredients = await fetchIngredients(
+        detectedSkinType,
+        false, // Default to non-sensitive skin
+        detectedConcerns,
+        {} // Default to general subtypes
+      );
+
       setAnalysis({
         skinType: detectedSkinType?.name || 'Unknown',
-        concerns: formatConcerns(data.result)
+        concerns: detectedConcerns,
+        ingredients: ingredients
       });
     } catch (error) {
       console.error('Error analyzing image:', error);
@@ -311,6 +361,19 @@ function SkinAnalysis() {
               <ConcernsList> {/*Else, list concerns */}
                 {analysis.concerns.map((concern, index) => (
                   <li key={index}>{concern.name}</li>
+                ))}
+              </ConcernsList>
+            )}
+          </AnalysisSection>
+
+          <AnalysisSection>
+            <h3>Recommended Ingredients</h3>
+            {analysis.ingredients?.length === 0 ? (
+              <p>No specific ingredients recommended.</p>
+            ) : (
+              <ConcernsList>
+                {analysis.ingredients?.map((ingredient, index) => (
+                  <li key={index}>{ingredient}</li>
                 ))}
               </ConcernsList>
             )}

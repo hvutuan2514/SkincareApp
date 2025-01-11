@@ -2,6 +2,7 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
 import styled from 'styled-components';
+import supabase from '../config/supabaseClient';
 
 const ResultsContainer = styled.div`
   max-width: 800px;
