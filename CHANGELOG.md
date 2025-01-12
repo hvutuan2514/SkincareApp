@@ -14,3 +14,6 @@
 1/10/25 - Hannah
 - SkinQuiz.js: Added more questions for the skin quiz
 - Supabase: Completed the database with concern_to_ingredients and type_to_ingredients
+
+1/11/25 - Hannah
+- SkinAnalysis.js: Added the recommended ingredients based on skin type and skin concerns
