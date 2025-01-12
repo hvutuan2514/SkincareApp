@@ -17,3 +17,6 @@
 
 1/11/25 - Hannah
 - SkinAnalysis.js: Added the recommended ingredients based on skin type and skin concerns
+
+1/12/25 - Hannah
+- SkinAnalysis.js: Added products based on the recommended ingredients (provides user with price and purchase link)

@@ -128,6 +128,46 @@ const ErrorMessage = styled.div`
   padding: 20px;
 `;
 
+const ProductGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+`;
+
+const ProductCard = styled.a`
+  background: white;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.2s;
+  
+  &:hover {
+    transform: translateY(-3px);
+  }
+`;
+
+const ProductName = styled.h4`
+  margin: 0 0 10px 0;
+  color: #2c3e50;
+`;
+
+const ProductPrice = styled.p`
+  font-weight: bold;
+  color: #3498db;
+`;
+
+const IngredientSection = styled.div`
+  margin-bottom: 30px;
+`;
+
+const IngredientTitle = styled.h4`
+  color: #3498db;
+  margin-bottom: 15px;
+`;
+
 const fetchIngredients = async (skinType, isSensitive, concerns, concernTypes) => {
     // Fetch skin type ingredients
     const { data: typeIngredients } = await supabase
@@ -166,7 +206,40 @@ const fetchIngredients = async (skinType, isSensitive, concerns, concernTypes) =
         .map(i => i.ingredients.name))];
 
     return uniqueIngredients;
-  };
+};
+
+const fetchRecommendedProducts = async (ingredients) => {
+    if (!ingredients?.length) return [];
+    
+    const { data: products } = await supabase
+      .from('products')
+      .select('*');
+
+    // Convert string with single quotes to proper array
+    const parseIngredients = (ingredientsStr) => {
+        // Remove brackets and split by commas
+        return ingredientsStr
+          .replace(/[\[\]']/g, '')
+          .split(', ')
+          .map(i => i.trim());
+    };
+  
+    // Create a map of ingredients to products
+    const productsByIngredient = {};
+    
+    ingredients.forEach(ingredient => {
+      productsByIngredient[ingredient] = products.filter(product => {
+        const productIngredients = parseIngredients(product.clean_ingreds);
+        const nameMatch = product.product_name.toLowerCase().includes(ingredient.toLowerCase());
+        const ingredientMatch = productIngredients.some(prodIngred => 
+          prodIngred.toLowerCase().includes(ingredient.toLowerCase())
+        );
+        return nameMatch || ingredientMatch;
+      });
+    });
+
+    return productsByIngredient;
+};
 
 function SkinAnalysis() {
   const [image, setImage] = useState(null);
@@ -266,10 +339,13 @@ function SkinAnalysis() {
         {} // Default to general subtypes
       );
 
+      const recommendedProducts = await fetchRecommendedProducts(ingredients);
+
       setAnalysis({
         skinType: detectedSkinType?.name || 'Unknown',
         concerns: detectedConcerns,
-        ingredients: ingredients
+        ingredients: ingredients,
+        products: recommendedProducts
       });
     } catch (error) {
       console.error('Error analyzing image:', error);
@@ -378,6 +454,28 @@ function SkinAnalysis() {
               </ConcernsList>
             )}
           </AnalysisSection>
+
+          <AnalysisSection>
+        <h3>Recommended Products by Ingredient</h3>
+        {Object.entries(analysis.products).map(([ingredient, products]) => (
+            <IngredientSection key={ingredient}>
+            <IngredientTitle>Products containing {ingredient}:</IngredientTitle>
+            <ProductGrid>
+                {products.map((product, index) => (
+                <ProductCard 
+                    key={index} 
+                    href={product.product_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    <ProductName>{product.product_name}</ProductName>
+                    <ProductPrice>£{product.price}</ProductPrice>
+                </ProductCard>
+                ))}
+            </ProductGrid>
+            </IngredientSection>
+        ))}
+        </AnalysisSection>
         </AnalysisContainer>
       )}
     </Container>
