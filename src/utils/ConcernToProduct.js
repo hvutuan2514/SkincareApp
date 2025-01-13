@@ -1,6 +1,14 @@
+// ConcernToProduct.js
 import supabase from '../config/supabaseClient';
 
 export const fetchIngredients = async (skinType, isSensitive, concerns, concernTypes) => {
+    // Fetch skin type ID
+    const { data: skinTypeData } = await supabase
+    .from('skin_type')
+    .select('id')
+    .eq('name', skinType)
+    .single();  
+
     // Fetch skin type ingredients
     const { data: typeIngredients } = await supabase
       .from('type_to_ingredients')
@@ -10,19 +18,28 @@ export const fetchIngredients = async (skinType, isSensitive, concerns, concernT
       .eq('skin_type_id', skinType.id)
       .eq('is_sensitive', isSensitive);
   
-    // Fetch concern ingredients
+    // Fetch concern IDS
     const concernPromises = concerns.map(async (concern) => {
-      console.log("in fetchIngredients(): Concern is = ", concern)
-      const subtype = concernTypes[concern.name] || 'general';
-      const { data: concernIngredients } = await supabase
-        .from('concern_to_ingredients')
-        .select(`
-            ingredients:ingredient_id (name)
-        `)
-        .eq('skin_concern_id', concern.id)
-        .eq('concern_subtype', subtype);
+      const { data: concernData } = await supabase
+          .from('skin_concerns')
+          .select('id')
+          .eq('name', concern)
+          .single();
 
-      return concernIngredients || [];
+      // Fetch concern ingredients by using actual names to look up IDs in the database
+      if (concernData) {
+          const subtype = concernTypes[concern] || 'general';
+          const { data: concernIngredients } = await supabase
+              .from('concern_to_ingredients')
+              .select(`
+                  ingredients:ingredient_id (name)
+              `)
+              .eq('skin_concern_id', concernData.id)
+              .eq('concern_subtype', subtype);
+
+          return concernIngredients || [];
+      }
+      return [];
     });
   
     const concernIngredientsArrays = await Promise.all(concernPromises);

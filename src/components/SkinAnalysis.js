@@ -402,7 +402,7 @@ function SkinAnalysis() {
                     rel="noopener noreferrer"
                 >
                     <ProductName>{product.product_name}</ProductName>
-                    <ProductPrice>£{product.price}</ProductPrice>
+                    <ProductPrice>{product.price}</ProductPrice>
                 </ProductCard>
                 ))}
             </ProductGrid>

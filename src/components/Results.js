@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import styled from 'styled-components';
-import supabase from '../config/supabaseClient';
 import { fetchIngredients, fetchRecommendedProducts } from '../utils/ConcernToProduct';
 
 const ResultsContainer = styled.div`
@@ -64,23 +63,6 @@ const ProductSection = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 20px;
-`;
-
-const ImageContainer = styled.div`
-  position: relative;
-  width: 100%;
-  padding-top: 100%; 
-  margin-bottom: 15px;
-`;
-
-const ProductImage = styled.img`
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: contain; 
-  border-radius: 4px;
 `;
 
 const ProductLink = styled.a`
@@ -173,7 +155,7 @@ function Results() {
         <IngredientList>
           {recommendedIngredients.map((ingredient, index) => (
             <Ingredient key={index}>
-              <strong>{ingredient.name}</strong>: {ingredient.benefit}
+              {ingredient} // Removes the object destructuring since ingredients are now strings
             </Ingredient>
           ))}
         </IngredientList>
@@ -182,18 +164,20 @@ function Results() {
       <Section>
         <h2>Recommended Products</h2>
         <ProductSection>
-          {recommendedProducts.map((product, index) => (
-            <ProductCard key={index}>
-              <ImageContainer>
-                <ProductImage src={product.image} alt={product.name} />
-              </ImageContainer>
-              <h3>{product.name}</h3>
-              <p><strong>Price:</strong> ${product.price}</p>
-              <p><strong>Retailer:</strong> {product.retailer}</p>
-              <ProductLink href={product.link} target="_blank" rel="noopener noreferrer">
-                Buy Now
-              </ProductLink>
-            </ProductCard>
+          // Uses Objects.entries() to iterate over the productsByIngredient Object
+          {Object.entries(recommendedProducts).map(([ingredient, products]) => (
+            <div key={ingredient}>
+              <h3>Products with {ingredient}</h3>
+              {products.map((product, index) => (
+                <ProductCard key={index}>
+                  <h3>{product.product_name}</h3>
+                  <p><strong>Price:</strong> {product.price}</p>
+                  <ProductLink href={product.product_url} target="_blank" rel="noopener noreferrer">
+                    Buy Now
+                  </ProductLink>
+                </ProductCard>
+              ))}
+            </div>
           ))}
         </ProductSection>
       </Section>
