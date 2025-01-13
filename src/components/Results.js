@@ -1,8 +1,9 @@
 // Results.js
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import supabase from '../config/supabaseClient';
+import { fetchIngredients, fetchRecommendedProducts } from '../utils/ConcernToProduct';
 
 const ResultsContainer = styled.div`
   max-width: 800px;
@@ -95,115 +96,52 @@ const ProductLink = styled.a`
   }
 `;
 
-const getRecommendedProducts = (ingredients) => {
-  const productDatabase = {
-    'Salicylic Acid': [
-      {
-        name: 'CeraVe Acne Control Cleanser',
-        price: 14.24,
-        image: 'https://www.cerave.com/-/media/project/loreal/brand-sites/cerave/americas/us/skincare/cleansers/acne-salicylic-acid-cleanser/acne-control-cleanser/desktop-700x785/acne-control-cleanser-packshot-desktop-700x785-v1.jpg?rev=85ca2b20496a42419b8ddf50200b483d&w=500&hash=3BB1AACFCDD161F5D9C9DD8E962E4860',
-        link: 'https://www.cerave.com/skincare/cleansers/acne-salicylic-acid-cleanser',
-        retailer: 'CeraVe'
-      }
-    ],
-    'Niacinamide': [
-      {
-        name: 'The Ordinary Niacinamide 10% + Zinc 1%',
-        price: 6.00,
-        image: 'https://theordinary.com/dw/image/v2/BFKJ_PRD/on/demandware.static/-/Sites-deciem-master/default/dwce8a7cdf/Images/products/The%20Ordinary/rdn-niacinamide-10pct-zinc-1pct-30ml.png?sw=860&sh=860&sm=fit',
-        link: 'https://theordinary.com/en-us/niacinamide-10-zinc-1-serum-100436.html?dwvar_100436_size=30ml&quantity=1&gQT=1',
-        retailer: 'The Ordinary'
-      }
-    ],
-    // Add more products for other ingredients
-  };
-
-  let recommendedProducts = [];
-  ingredients.forEach(ingredient => {
-    if (productDatabase[ingredient.name]) {
-      recommendedProducts = [...recommendedProducts, ...productDatabase[ingredient.name]];
-    }
-  });
-
-  return recommendedProducts;
-};
-
 function Results() {
   const location = useLocation();
   const { formData } = location.state || { formData: {} };
+  const [recommendedIngredients, setRecommendedIngredients] = useState([]);
+  const [recommendedProducts, setRecommendedProducts] = useState([]);
 
-  const getRecommendedIngredients = () => {
-    let ingredients = [];
+  useEffect(() => {
+    const getRecommendations = async () => {
+      try {
+        if (!formData) return;
+  
+        const { skinType, isSensitive, skinConcerns } = formData;
+        console.log('Fetching ingredients for skinType:', skinType, '\nisSensitive:', isSensitive, '\nskinConcerns:', skinConcerns);
+  
+        // Map only "Blackheads" for now
+        const formattedConcerns = skinConcerns
+        ? skinConcerns.map(concern => (concern === 'Blackheads' ? 'blackhead' : concern))
+        : [];
 
-    const skinTypeIngredients = {
-      oily: [
-        { name: 'Salicylic Acid', benefit: 'Unclogs pores and reduces oil production' },
-        { name: 'Niacinamide', benefit: 'Controls oil production and reduces inflammation' },
-        { name: 'Tea Tree Oil', benefit: 'Natural antibacterial properties' },
-        { name: 'Retinoid', benefit: 'Brightens skin and reduces fine lines' }
-      ],
-      dry: [
-        { name: 'Hyaluronic Acid', benefit: 'Deeply hydrates and plumps skin' },
-        { name: 'Ceramides', benefit: 'Strengthens skin barrier' },
-        { name: 'Glycerin', benefit: 'Attracts and retains moisture' }
-      ],
-      combination: [
-        { name: 'Niacinamide', benefit: 'Balances oil production' },
-        { name: 'Alpha Hydroxy Acids', benefit: 'Gentle exfoliation' },
-        { name: 'Peptides', benefit: 'Strengthens and repairs skin' }
-      ],
-      normal: [
-        { name: 'Vitamin C', benefit: 'Brightens and protects' },
-        { name: 'Peptides', benefit: 'Maintains skin health' },
-        { name: 'Antioxidants', benefit: 'Protects from environmental damage' }
-      ]
-    };
+        console.log('Testing with formatted concerns:', formattedConcerns);
 
-    const concernIngredients = {
-      'Acne': [
-        { name: 'Benzoyl Peroxide', benefit: 'Kills acne-causing bacteria' },
-        { name: 'Azelaic Acid', benefit: 'Reduces inflammation and breakouts' }
-      ],
-      'Dark spots': [
-        { name: 'Kojic Acid', benefit: 'Lightens dark spots' },
-        { name: 'Vitamin C', benefit: 'Brightens and evens skin tone' }
-      ],
-      'Fine lines': [
-        { name: 'Retinol', benefit: 'Reduces fine lines and wrinkles' },
-        { name: 'Peptides', benefit: 'Boosts collagen production' }
-      ],
-      'Dryness': [
-        { name: 'Squalane', benefit: 'Moisturizes without clogging pores' },
-        { name: 'Shea Butter', benefit: 'Rich, nourishing moisturizer' }
-      ]
-    };
-
-    if (formData.skinType && skinTypeIngredients[formData.skinType]) {
-      ingredients = [...ingredients, ...skinTypeIngredients[formData.skinType]];
-    }
-
-    formData.skinConcerns.forEach(concern => {
-      if (concernIngredients[concern]) {
-        ingredients = [...ingredients, ...concernIngredients[concern]];
+        // Fetching ingredients
+        const ingredients = await fetchIngredients(
+          skinType,
+          isSensitive,
+          skinConcerns,  
+          {}  // Default to general subtypes
+        );
+        console.log('Fetched Ingredients:', ingredients);
+  
+        // Fetching recommended products
+        const products = await fetchRecommendedProducts(ingredients);
+        console.log('Fetched Recommended Products:', products);
+  
+        // Set the state with the fetched data
+        setRecommendedIngredients(ingredients);
+        setRecommendedProducts(products);
+      } catch (error) {
+        console.error('Error fetching recommendations:', error);
       }
-    });
-
-    if (formData.isSensitive) {
-      ingredients = ingredients.filter(ing => 
-        !['Retinol', 'Benzoyl Peroxide'].includes(ing.name)
-      );
-      ingredients.push(
-        { name: 'Centella Asiatica', benefit: 'Calms and soothes sensitive skin' },
-        { name: 'Allantoin', benefit: 'Gentle healing and soothing properties' }
-      );
-    }
-
-    return ingredients;
-  };
-
-  const recommendedIngredients = getRecommendedIngredients();
-  const recommendedProducts = getRecommendedProducts(recommendedIngredients);
-
+    };
+  
+    getRecommendations();
+  }, [formData]);
+  
+  
   return (
     <ResultsContainer>
       <Section>

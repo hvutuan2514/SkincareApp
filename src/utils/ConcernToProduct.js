@@ -12,6 +12,7 @@ export const fetchIngredients = async (skinType, isSensitive, concerns, concernT
   
     // Fetch concern ingredients
     const concernPromises = concerns.map(async (concern) => {
+      console.log("in fetchIngredients(): Concern is = ", concern)
       const subtype = concernTypes[concern.name] || 'general';
       const { data: concernIngredients } = await supabase
         .from('concern_to_ingredients')

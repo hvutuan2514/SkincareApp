@@ -261,6 +261,9 @@ function SkinAnalysis() {
       );
 
       const detectedConcerns = formatConcerns(data.result);
+      console.log("data result", data.result);
+      console.log("D", detectedConcerns);
+      console.log("S", skinConcerns);
       
       const ingredients = await fetchIngredients(
         detectedSkinType,
