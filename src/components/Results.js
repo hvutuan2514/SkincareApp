@@ -165,10 +165,13 @@ function Results() {
         <h2>Recommended Products</h2>
         <ProductSection>
           {Object.entries(recommendedProducts).map(([ingredient, products]) => (
-            <div key={ingredient}>
-              <h3>Products with {ingredient}</h3>
+            <>
+              {/* Grid-wide header for each ingredient */}
+              <h3 style={{ gridColumn: "1 / -1", margin: "10px 0" }}>
+                Products containing {ingredient}
+              </h3>
               {products.map((product, index) => (
-                <ProductCard key={index}>
+                <ProductCard key={`${ingredient}-${index}`}>
                   <h3>{product.product_name}</h3>
                   <p><strong>Price:</strong> {product.price}</p>
                   <ProductLink href={product.product_url} target="_blank" rel="noopener noreferrer">
@@ -176,7 +179,7 @@ function Results() {
                   </ProductLink>
                 </ProductCard>
               ))}
-            </div>
+            </>
           ))}
         </ProductSection>
       </Section>
