@@ -4,10 +4,10 @@ import supabase from '../config/supabaseClient';
 export const fetchIngredients = async (skinType, isSensitive, concerns, concernTypes) => {
     // Fetch skin type ID
     const { data: skinTypeData } = await supabase
-    .from('skin_type')
-    .select('id')
-    .eq('name', skinType)
-    .single();  
+      .from('skin_type')
+      .select('id')
+      .eq('name', skinType)
+      .single();  
 
     // Fetch skin type ingredients
     const { data: typeIngredients } = await supabase
