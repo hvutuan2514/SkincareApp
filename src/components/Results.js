@@ -155,7 +155,7 @@ function Results() {
         <IngredientList>
           {recommendedIngredients.map((ingredient, index) => (
             <Ingredient key={index}>
-              {ingredient} // Removes the object destructuring since ingredients are now strings
+              {ingredient}
             </Ingredient>
           ))}
         </IngredientList>
@@ -164,7 +164,6 @@ function Results() {
       <Section>
         <h2>Recommended Products</h2>
         <ProductSection>
-          // Uses Objects.entries() to iterate over the productsByIngredient Object
           {Object.entries(recommendedProducts).map(([ingredient, products]) => (
             <div key={ingredient}>
               <h3>Products with {ingredient}</h3>
