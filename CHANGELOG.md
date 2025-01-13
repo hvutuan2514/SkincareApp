@@ -24,3 +24,7 @@
 
 1/13/25 - Ananya
 - utils/ConcernToProduct.js : moved fetchIngredients() & fetchRecommendedProducts() to here from SkinAnalysis.js
+- Recommend product with most matching ingredients
+    - Ingredients are shown properly per card
+    - Does not recommend a product with no matching ingredients
+    - TODO: Put most matching ingredient products at TOP of list

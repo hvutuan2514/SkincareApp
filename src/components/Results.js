@@ -78,11 +78,24 @@ const ProductLink = styled.a`
   }
 `;
 
+const IngredientsList = styled.ul`
+  list-style: none;
+  padding: 0;
+  margin-top: 10px;
+`;
+
+const IngredientItem = styled.li`
+  background: #e9ecef;
+  border-radius: 15px;
+  margin: 5px 0;
+  padding: 5px 10px;
+`;
+
 function Results() {
   const location = useLocation();
   const { formData } = location.state || { formData: {} };
   const [recommendedIngredients, setRecommendedIngredients] = useState([]);
-  const [recommendedProducts, setRecommendedProducts] = useState([]);
+  const [recommendedProducts, setRecommendedProducts] = useState({});
 
   useEffect(() => {
     const getRecommendations = async () => {
@@ -96,7 +109,7 @@ function Results() {
         const formattedConcerns = skinConcerns
         ? skinConcerns.map(concern => (concern === 'Blackheads' ? 'blackhead' : concern))
         : [];
-
+  
         console.log('Testing with formatted concerns:', formattedConcerns);
 
         // Fetching ingredients
@@ -122,8 +135,18 @@ function Results() {
   
     getRecommendations();
   }, [formData]);
-  
-  
+
+  // Flatten and sort products by match count
+  const flattenedProducts = Object.entries(recommendedProducts)
+    .flatMap(([ingredient, products]) => 
+      products.map(product => ({
+        ...product,
+        matchCount: product.matchCount || 0,
+        ingredient
+      }))
+    )
+    .sort((a, b) => b.matchCount - a.matchCount); // Sort by matchCount (most matches first)
+
   return (
     <ResultsContainer>
       <Section>
@@ -147,7 +170,6 @@ function Results() {
             <p><strong>Acne Type:</strong> {formData.acneType}</p>
           )}
         </UserProfile>
-
       </Section>
 
       <Section>
@@ -162,30 +184,63 @@ function Results() {
       </Section>
       
       <Section>
-        <h2>Recommended Products</h2>
-        <ProductSection>
-          {Object.entries(recommendedProducts).map(([ingredient, products]) => (
-            <>
-              {/* Grid-wide header for each ingredient */}
-              <h3 style={{ gridColumn: "1 / -1", margin: "10px 0" }}>
-                Products containing {ingredient}
-              </h3>
-              {products.map((product, index) => (
-                <ProductCard key={`${ingredient}-${index}`}>
-                  <h3>{product.product_name}</h3>
-                  <p><strong>Price:</strong> {product.price}</p>
-                  <ProductLink href={product.product_url} target="_blank" rel="noopener noreferrer">
-                    Buy Now
-                  </ProductLink>
-                </ProductCard>
-              ))}
-            </>
-          ))}
-        </ProductSection>
-      </Section>
+  <h2>Recommended Products</h2>
+  <ProductSection>
+    {flattenedProducts.map((item, index) => {
+      // Extract the actual product object and ingredient match count
+      const { product } = item;
+      const { product_name, price, clean_ingreds, product_url } = product;
+
+      // Debugging: Log the whole product object to inspect its structure
+      console.log('Product Object:', product);
+
+      // Safety check to ensure product is not undefined and has the required properties
+      if (!product || !product_name || !price || !clean_ingreds) {
+        console.warn(`Product missing required fields:`, product);
+        return null;  // Skip this product if it has missing fields
+      }
+
+      // Filter out ingredients that match the current product
+      const matchedIngredients = recommendedIngredients.filter(targetIngredient => 
+        clean_ingreds.toLowerCase().includes(targetIngredient.toLowerCase())
+      );
+
+      const matchCount = matchedIngredients.length;
+
+      // Log the product details, matched ingredients, and match count
+      console.log(`Product: ${product_name}`);
+      console.log(`Price: ${price}`);
+      console.log(`Matched Ingredients: ${matchedIngredients.join(', ')}`);
+      console.log(`Match Count: ${matchCount}`);
+
+      return (
+        <ProductCard key={index}>
+          <h3>{product_name}</h3>
+          <p><strong>Price:</strong> {price}</p>
+          
+          {/* List the relevant ingredients the product covers */}
+          <IngredientsList>
+            {matchedIngredients.length > 0 ? (
+              matchedIngredients.map((ingredient, idx) => (
+                <IngredientItem key={idx}>{ingredient}</IngredientItem>
+              ))
+            ) : (
+              <p>No matching ingredients found</p>
+            )}
+          </IngredientsList>
+
+          <ProductLink href={product_url} target="_blank" rel="noopener noreferrer">
+            Buy Now
+          </ProductLink>
+        </ProductCard>
+      );
+    })}
+  </ProductSection>
+</Section>
+
+
     </ResultsContainer>
-  );                                
+  );
 }
 
 export default Results;
-

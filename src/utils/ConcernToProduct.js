@@ -58,35 +58,59 @@ export const fetchIngredients = async (skinType, isSensitive, concerns, concernT
     return uniqueIngredients;
 };
 
-export const fetchRecommendedProducts = async (ingredients) => {
-    if (!ingredients?.length) return [];
-    
-    const { data: products } = await supabase
-      .from('products')
-      .select('*');
 
-    // Convert string with single quotes to proper array
-    const parseIngredients = (ingredientsStr) => {
-        // Remove brackets and split by commas
-        return ingredientsStr
-          .replace(/[\[\]']/g, '')
-          .split(', ')
-          .map(i => i.trim());
-    };
-  
-    // Create a map of ingredients to products
-    const productsByIngredient = {};
-    
-    ingredients.forEach(ingredient => {
-      productsByIngredient[ingredient] = products.filter(product => {
+export const fetchRecommendedProducts = async (ingredients) => {
+  if (!ingredients?.length) return [];
+
+  const { data: products } = await supabase
+    .from('products')
+    .select('*');
+
+  // Convert string with single quotes to proper array
+  const parseIngredients = (ingredientsStr) => {
+    return ingredientsStr
+      .replace(/[\[\]']/g, '')
+      .split(', ')
+      .map(i => i.trim());
+  };
+
+  // Create a map of ingredients to products
+  const productsByIngredient = {};
+
+  ingredients.forEach(ingredient => {
+    productsByIngredient[ingredient] = products
+      .map(product => {
         const productIngredients = parseIngredients(product.clean_ingreds);
         const nameMatch = product.product_name.toLowerCase().includes(ingredient.toLowerCase());
-        const ingredientMatch = productIngredients.some(prodIngred => 
-          prodIngred.toLowerCase().includes(ingredient.toLowerCase())
-        );
-        return nameMatch || ingredientMatch;
-      });
-    });
 
-    return productsByIngredient;
+        // Count how many of the required ingredients are in this product
+        const ingredientMatchCount = productIngredients.filter(prodIngred =>
+          prodIngred.toLowerCase().includes(ingredient.toLowerCase())
+        ).length;
+
+        return {
+          product,
+          ingredientMatchCount,
+          nameMatch
+        };
+      })
+      .filter(item => item.ingredientMatchCount > 0 || item.nameMatch) // Filter out products with no matches
+      .sort((a, b) => b.ingredientMatchCount - a.ingredientMatchCount); // Sort by ingredient match count in descending order
+  });
+
+  // After collecting all products, filter out the ones with no ingredient matches
+  const filteredProducts = Object.entries(productsByIngredient).reduce((acc, [ingredient, productItems]) => {
+    const productsWithMatches = productItems.filter(item => item.ingredientMatchCount > 0);
+    if (productsWithMatches.length > 0) {
+      acc[ingredient] = productsWithMatches;
+    }
+    return acc;
+  }, {});
+
+  console.log("Filtered and Sorted Products with matching ingredients:", filteredProducts);
+
+  return filteredProducts;
 };
+
+
+
