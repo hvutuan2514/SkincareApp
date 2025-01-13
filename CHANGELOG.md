@@ -21,3 +21,6 @@
 1/12/25 - Hannah
 - SkinAnalysis.js: Added products based on the recommended ingredients (provides user with price and purchase link)
 - Deleted any stuff related to google gemini (not using this AI model anymore)
+
+1/13/25 - Ananya
+- utils/ConcernToProduct.js : moved fetchIngredients() & fetchRecommendedProducts() to here from SkinAnalysis.js
