@@ -91,6 +91,24 @@ const IngredientItem = styled.li`
   padding: 5px 10px;
 `;
 
+const IngredientChipContainer = styled.div`
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+`;
+
+const IngredientChip = styled.div`
+  background-color: #e9ecef;
+  color: #495057;
+  padding: 8px 12px;
+  margin: 5px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  display: inline-block;
+  text-transform: capitalize;
+`;
+
 function Results() {
   const location = useLocation();
   const { formData } = location.state || { formData: {} };
@@ -151,6 +169,15 @@ const flattenedProducts = Object.entries(recommendedProducts || {})
 )
 .sort((a, b) => b.matchCount - a.matchCount); // Sort by matchCount (most matches first)
 
+ // Function to find the required ingredients that the product covers
+ const getMatchingIngredients = (productIngredients, requiredIngredients) => {
+  return requiredIngredients.filter(ingredient =>
+    productIngredients.some(prodIngred =>
+      prodIngred.toLowerCase().includes(ingredient.toLowerCase())
+    )
+  );
+};
+
 
   return (
     <ResultsContainer>
@@ -193,18 +220,36 @@ const flattenedProducts = Object.entries(recommendedProducts || {})
         <ProductSection>
           {recommendedProducts.length > 0 ? (
             recommendedProducts.map((product, index) => {
-              const { product_name, price, product_url } = product;
+              const { product_name, price, clean_ingreds, product_url } = product;
 
               // Safety check to ensure product has the required properties
-              if (!product_name || !price || !product_url) {
+              if (!product_name || !price || !clean_ingreds || !product_url) {
                 console.warn(`Product missing required fields:`, product);
                 return null; // Skip this product if it has missing fields
               }
+
+              // Parse the product's ingredients
+              const productIngredients = clean_ingreds
+                .replace(/[\[\]']/g, '')
+                .split(', ')
+                .map(i => i.trim());
+
+              // Get the matching required ingredients for this product
+              const matchingIngredients = getMatchingIngredients(productIngredients, recommendedIngredients);
 
               return (
                 <ProductCard key={index}>
                   <h3>{product_name}</h3>
                   <p><strong>Price:</strong> {price}</p>
+
+                  {/* Display matching ingredients as "pills" */}
+                  {matchingIngredients.length > 0 && (
+                    <IngredientChipContainer>
+                      {matchingIngredients.map((ingredient, idx) => (
+                        <IngredientChip key={idx}>{ingredient}</IngredientChip>
+                      ))}
+                    </IngredientChipContainer>
+                  )}
 
                   <ProductLink href={product_url} target="_blank" rel="noopener noreferrer">
                     Buy Now
