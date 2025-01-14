@@ -58,9 +58,8 @@ export const fetchIngredients = async (skinType, isSensitive, concerns, concernT
     return uniqueIngredients;
 };
 
-
-export const fetchRecommendedProducts = async (ingredients) => {
-  if (!ingredients?.length) return [];
+export const fetchRecommendedProducts = async (requiredIngredients) => {
+  if (!requiredIngredients?.length) return [];
 
   const { data: products } = await supabase
     .from('products')
@@ -74,43 +73,28 @@ export const fetchRecommendedProducts = async (ingredients) => {
       .map(i => i.trim());
   };
 
-  // Create a map of ingredients to products
-  const productsByIngredient = {};
+  // Calculate the match score for each product
+  const scoredProducts = products.map(product => {
+    const productIngredients = parseIngredients(product.clean_ingreds);
 
-  ingredients.forEach(ingredient => {
-    productsByIngredient[ingredient] = products
-      .map(product => {
-        const productIngredients = parseIngredients(product.clean_ingreds);
-        const nameMatch = product.product_name.toLowerCase().includes(ingredient.toLowerCase());
+    // Count how many required ingredients are in this product
+    const ingredientMatchCount = requiredIngredients.filter(required =>
+      productIngredients.some(prodIngred =>
+        prodIngred.toLowerCase().includes(required.toLowerCase())
+      )
+    ).length;
 
-        // Count how many of the required ingredients are in this product
-        const ingredientMatchCount = productIngredients.filter(prodIngred =>
-          prodIngred.toLowerCase().includes(ingredient.toLowerCase())
-        ).length;
-
-        return {
-          product,
-          ingredientMatchCount,
-          nameMatch
-        };
-      })
-      .filter(item => item.ingredientMatchCount > 0 || item.nameMatch) // Filter out products with no matches
-      .sort((a, b) => b.ingredientMatchCount - a.ingredientMatchCount); // Sort by ingredient match count in descending order
+    return {
+      ...product,
+      ingredientMatchCount
+    };
   });
 
-  // After collecting all products, filter out the ones with no ingredient matches
-  const filteredProducts = Object.entries(productsByIngredient).reduce((acc, [ingredient, productItems]) => {
-    const productsWithMatches = productItems.filter(item => item.ingredientMatchCount > 0);
-    if (productsWithMatches.length > 0) {
-      acc[ingredient] = productsWithMatches;
-    }
-    return acc;
-  }, {});
+  // Filter out products with no matches
+  const filteredProducts = scoredProducts.filter(p => p.ingredientMatchCount > 0);
 
-  console.log("Filtered and Sorted Products with matching ingredients:", filteredProducts);
+  // Sort products by match count (highest first)
+  filteredProducts.sort((a, b) => b.ingredientMatchCount - a.ingredientMatchCount);
 
   return filteredProducts;
 };
-
-
-

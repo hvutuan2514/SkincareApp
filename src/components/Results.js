@@ -110,7 +110,7 @@ function Results() {
         ? skinConcerns.map(concern => (concern === 'Blackheads' ? 'blackhead' : concern))
         : [];
   
-        console.log('Testing with formatted concerns:', formattedConcerns);
+        //console.log('Testing with formatted concerns:', formattedConcerns);
 
         // Fetching ingredients
         const ingredients = await fetchIngredients(
@@ -119,11 +119,13 @@ function Results() {
           skinConcerns,  
           {}  // Default to general subtypes
         );
-        console.log('Fetched Ingredients:', ingredients);
+       // console.log('Fetched Ingredients:', ingredients);
   
+       console.log('test');
         // Fetching recommended products
         const products = await fetchRecommendedProducts(ingredients);
         console.log('Fetched Recommended Products:', products);
+        console.log('Type of products:', typeof products);
   
         // Set the state with the fetched data
         setRecommendedIngredients(ingredients);
@@ -137,15 +139,18 @@ function Results() {
   }, [formData]);
 
   // Flatten and sort products by match count
-  const flattenedProducts = Object.entries(recommendedProducts)
-    .flatMap(([ingredient, products]) => 
-      products.map(product => ({
+const flattenedProducts = Object.entries(recommendedProducts || {})
+.flatMap(([ingredient, products]) => 
+  Array.isArray(products)
+    ? products.map(product => ({
         ...product,
         matchCount: product.matchCount || 0,
         ingredient
       }))
-    )
-    .sort((a, b) => b.matchCount - a.matchCount); // Sort by matchCount (most matches first)
+    : [] // If products is not an array, return an empty array
+)
+.sort((a, b) => b.matchCount - a.matchCount); // Sort by matchCount (most matches first)
+
 
   return (
     <ResultsContainer>
@@ -186,46 +191,35 @@ function Results() {
       <Section>
   <h2>Recommended Products</h2>
   <ProductSection>
-    {flattenedProducts.map((item, index) => {
-      // Extract the actual product object and ingredient match count
-      const { product } = item;
-      const { product_name, price, clean_ingreds, product_url } = product;
-
-      // Debugging: Log the whole product object to inspect its structure
-      console.log('Product Object:', product);
+    {flattenedProducts.map((product, index) => {
+      const { product_name, price, clean_ingreds, product_url, matchCount } = product;
 
       // Safety check to ensure product is not undefined and has the required properties
-      if (!product || !product_name || !price || !clean_ingreds) {
+      if (!product_name || !price || !clean_ingreds) {
         console.warn(`Product missing required fields:`, product);
-        return null;  // Skip this product if it has missing fields
+        return null; // Skip this product if it has missing fields
       }
 
-      // Filter out ingredients that match the current product
-      const matchedIngredients = recommendedIngredients.filter(targetIngredient => 
-        clean_ingreds.toLowerCase().includes(targetIngredient.toLowerCase())
-      );
-
-      const matchCount = matchedIngredients.length;
-
-      // Log the product details, matched ingredients, and match count
-      console.log(`Product: ${product_name}`);
-      console.log(`Price: ${price}`);
-      console.log(`Matched Ingredients: ${matchedIngredients.join(', ')}`);
-      console.log(`Match Count: ${matchCount}`);
+      // Parse the ingredients string for display
+      const parsedIngredients = clean_ingreds
+        .replace(/[\[\]']/g, '')
+        .split(', ')
+        .map(i => i.trim());
 
       return (
         <ProductCard key={index}>
           <h3>{product_name}</h3>
           <p><strong>Price:</strong> {price}</p>
-          
-          {/* List the relevant ingredients the product covers */}
+          <p><strong>Matches:</strong> {matchCount}</p>
+
+          {/* List all ingredients */}
           <IngredientsList>
-            {matchedIngredients.length > 0 ? (
-              matchedIngredients.map((ingredient, idx) => (
+            {parsedIngredients.length > 0 ? (
+              parsedIngredients.map((ingredient, idx) => (
                 <IngredientItem key={idx}>{ingredient}</IngredientItem>
               ))
             ) : (
-              <p>No matching ingredients found</p>
+              <p>No ingredients listed</p>
             )}
           </IngredientsList>
 
