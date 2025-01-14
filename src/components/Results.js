@@ -189,49 +189,34 @@ const flattenedProducts = Object.entries(recommendedProducts || {})
       </Section>
       
       <Section>
-  <h2>Recommended Products</h2>
-  <ProductSection>
-    {flattenedProducts.map((product, index) => {
-      const { product_name, price, clean_ingreds, product_url, matchCount } = product;
+        <h2>Recommended Products</h2>
+        <ProductSection>
+          {recommendedProducts.length > 0 ? (
+            recommendedProducts.map((product, index) => {
+              const { product_name, price, product_url } = product;
 
-      // Safety check to ensure product is not undefined and has the required properties
-      if (!product_name || !price || !clean_ingreds) {
-        console.warn(`Product missing required fields:`, product);
-        return null; // Skip this product if it has missing fields
-      }
+              // Safety check to ensure product has the required properties
+              if (!product_name || !price || !product_url) {
+                console.warn(`Product missing required fields:`, product);
+                return null; // Skip this product if it has missing fields
+              }
 
-      // Parse the ingredients string for display
-      const parsedIngredients = clean_ingreds
-        .replace(/[\[\]']/g, '')
-        .split(', ')
-        .map(i => i.trim());
+              return (
+                <ProductCard key={index}>
+                  <h3>{product_name}</h3>
+                  <p><strong>Price:</strong> {price}</p>
 
-      return (
-        <ProductCard key={index}>
-          <h3>{product_name}</h3>
-          <p><strong>Price:</strong> {price}</p>
-          <p><strong>Matches:</strong> {matchCount}</p>
-
-          {/* List all ingredients */}
-          <IngredientsList>
-            {parsedIngredients.length > 0 ? (
-              parsedIngredients.map((ingredient, idx) => (
-                <IngredientItem key={idx}>{ingredient}</IngredientItem>
-              ))
-            ) : (
-              <p>No ingredients listed</p>
-            )}
-          </IngredientsList>
-
-          <ProductLink href={product_url} target="_blank" rel="noopener noreferrer">
-            Buy Now
-          </ProductLink>
-        </ProductCard>
-      );
-    })}
-  </ProductSection>
-</Section>
-
+                  <ProductLink href={product_url} target="_blank" rel="noopener noreferrer">
+                    Buy Now
+                  </ProductLink>
+                </ProductCard>
+              );
+            })
+          ) : (
+            <p>No products found.</p>
+          )}
+        </ProductSection>
+      </Section>
 
     </ResultsContainer>
   );
