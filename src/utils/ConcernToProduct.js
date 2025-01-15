@@ -57,7 +57,6 @@ export const fetchIngredients = async (skinType, isSensitive, concerns, concernT
 
     return uniqueIngredients;
 };
-
 export const fetchRecommendedProducts = async (requiredIngredients) => {
   if (!requiredIngredients?.length) return [];
 
@@ -77,24 +76,34 @@ export const fetchRecommendedProducts = async (requiredIngredients) => {
   const scoredProducts = products.map(product => {
     const productIngredients = parseIngredients(product.clean_ingreds);
 
-    // Count how many required ingredients are in this product
+    // Count how many required ingredients are in this product's ingredients
     const ingredientMatchCount = requiredIngredients.filter(required =>
       productIngredients.some(prodIngred =>
         prodIngred.toLowerCase().includes(required.toLowerCase())
       )
     ).length;
 
+    // Check if the product name matches any of the required ingredients
+    const nameMatchCount = requiredIngredients.filter(required =>
+      product.product_name.toLowerCase().includes(required.toLowerCase())
+    ).length;
+
+    // Combine ingredient match count and name match count
+    const totalMatchCount = ingredientMatchCount + nameMatchCount;
+
     return {
       ...product,
-      ingredientMatchCount
+      ingredientMatchCount,
+      nameMatchCount,
+      totalMatchCount
     };
   });
 
   // Filter out products with no matches
-  const filteredProducts = scoredProducts.filter(p => p.ingredientMatchCount > 0);
+  const filteredProducts = scoredProducts.filter(p => p.totalMatchCount > 0);
 
-  // Sort products by match count (highest first)
-  filteredProducts.sort((a, b) => b.ingredientMatchCount - a.ingredientMatchCount);
+  // Sort products by total match count (highest first)
+  filteredProducts.sort((a, b) => b.totalMatchCount - a.totalMatchCount);
 
   return filteredProducts;
 };

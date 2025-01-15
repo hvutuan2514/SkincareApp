@@ -346,18 +346,31 @@ function SkinAnalysis() {
     }
   };
   
-  const getMatchingIngredients = (productIngredients, requiredIngredients) => {
+  const getMatchingIngredients = (productIngredients, requiredIngredients, productName) => {
     if (!Array.isArray(productIngredients) || !Array.isArray(requiredIngredients)) {
       return [];
     }
   
-    return requiredIngredients.filter(ingredient =>
+    // Create an array to hold the final matching ingredients
+    const finalMatchingIngredients = [];
+  
+    // Check if any required ingredient matches the product name
+    requiredIngredients.forEach(ingredient => {
+      if (productName.toLowerCase().includes(ingredient.toLowerCase())) {
+        finalMatchingIngredients.push(ingredient); // Add the ingredient itself if the product name contains it
+      }
+    });
+  
+    // Now get matching ingredients from the actual product ingredients
+    const ingredientMatches = requiredIngredients.filter(ingredient =>
       productIngredients.some(prodIngred =>
         prodIngred.toLowerCase().includes(ingredient.toLowerCase())
       )
     );
+  
+    // Combine both matches (name match and ingredient matches)
+    return [...new Set([...finalMatchingIngredients, ...ingredientMatches])]; // Ensure no duplicates
   };
-
 
 
   return (
@@ -433,42 +446,42 @@ function SkinAnalysis() {
           <AnalysisSection>
           <h3>Recommended Products</h3>
           <ProductGrid>
-            {analysis.products.map((product, index) => {
-              // Parse product ingredients if they are a string
-              let productIngredients = [];
-              if (typeof product.clean_ingreds === 'string') {
-                try {
-                  // Replace single quotes with double quotes to make it valid JSON
-                  const fixedIngredients = product.clean_ingreds.replace(/'/g, '"');
-                  productIngredients = JSON.parse(fixedIngredients);
-                } catch (e) {
-                  console.error('Error parsing ingredients:', e);
-                }
-              }
+  {analysis.products.map((product, index) => {
+    // Parse product ingredients if they are a string
+    let productIngredients = [];
+    if (typeof product.clean_ingreds === 'string') {
+      try {
+        // Replace single quotes with double quotes to make it valid JSON
+        const fixedIngredients = product.clean_ingreds.replace(/'/g, '"');
+        productIngredients = JSON.parse(fixedIngredients);
+      } catch (e) {
+        console.error('Error parsing ingredients:', e);
+      }
+    }
 
-              const matchingIngredients = getMatchingIngredients(productIngredients, analysis.ingredients);
+    const matchingIngredients = getMatchingIngredients(productIngredients, analysis.ingredients, product.product_name);
 
-              // Log matching ingredients for debugging
-              console.log(`Required Ingredients found in Recommended Product #${index + 1}:\n`, matchingIngredients);
+    // Log matching ingredients for debugging
+    console.log(`Required Ingredients found in Recommended Product #${index + 1}:\n`, matchingIngredients);
 
+    return (
+      <ProductCard key={index} href={product.product_url} target="_blank" rel="noopener noreferrer">
+        <ProductName>{product.product_name}</ProductName>
+        <ProductPrice>{product.price}</ProductPrice>
 
-              return (
-                <ProductCard key={index} href={product.product_url} target="_blank" rel="noopener noreferrer">
-                  <ProductName>{product.product_name}</ProductName>
-                  <ProductPrice>{product.price}</ProductPrice>
+        {/* Display matching ingredients as "chips" */}
+        {matchingIngredients.length > 0 && (
+          <IngredientChipContainer>
+            {matchingIngredients.map((ingredient, idx) => (
+              <IngredientChip key={idx}>{ingredient}</IngredientChip>
+            ))}
+          </IngredientChipContainer>
+        )}
+      </ProductCard>
+    );
+  })}
+</ProductGrid>
 
-                  {/* Display matching ingredients as "chips" */}
-                  {matchingIngredients.length > 0 && (
-                    <IngredientChipContainer>
-                      {matchingIngredients.map((ingredient, idx) => (
-                        <IngredientChip key={idx}>{ingredient}</IngredientChip>
-                      ))}
-                    </IngredientChipContainer>
-                  )}
-                </ProductCard>
-              );
-            })}
-          </ProductGrid>
         </AnalysisSection>
 
 
