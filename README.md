@@ -7,12 +7,12 @@ products dataset imported into supabase: https://www.kaggle.com/datasets/eward96
 Skin Analyzer API: https://console.faceplusplus.com/documents/129100210
 
 TODO:
-2) ingredient to product - parsing algorithm
+2) ingredient to product - parsing algorithm (ALMOST DONE)
     - match product to MOST ingredients covered
 3) no skin concern --> still rec products
 4) style website
 5) put an image per product?
-6) Feature to filter based off pricing
+6) NEXT: Feature to filter product cards based off pricing
 
 DONE:
 1) skin concern to ingredient - database + parsing algorithm 

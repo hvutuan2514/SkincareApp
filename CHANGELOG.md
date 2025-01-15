@@ -24,7 +24,8 @@
 
 1/13/25 - Ananya
 - utils/ConcernToProduct.js : moved fetchIngredients() & fetchRecommendedProducts() to here from SkinAnalysis.js
-- Recommend product with most matching ingredients
-    - Ingredients are shown properly per card
-    - Does not recommend a product with no matching ingredients
-    - TODO: Put most matching ingredient products at TOP of list
+- Recommend product with most matching ingredients - Almost done
+    - Identifies ingredients correctly
+    - Puts product cards in order correctly
+    - Issue: New fetchRecommendedProducts() algorithm shows less results than the old one (like 4-5 fewer)
+    - Issue: Logs show "Required Ingredients found in Recommended Product #" twice. Shows X number of products once, then X again. 
