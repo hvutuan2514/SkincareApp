@@ -148,13 +148,32 @@ function Results() {
   }, [formData]);
 
   // Function to find the required ingredients that the product covers
-  const getMatchingIngredients = (productIngredients, requiredIngredients) => {
-    return requiredIngredients.filter(ingredient =>
-      productIngredients.some(prodIngred =>
-        prodIngred.toLowerCase().includes(ingredient.toLowerCase())
-      )
-    );
-  };
+const getMatchingIngredients = (productIngredients, requiredIngredients, productName) => {
+  if (!Array.isArray(productIngredients) || !Array.isArray(requiredIngredients)) {
+    return [];
+  }
+
+  // Create an array to hold the final matching ingredients
+  const finalMatchingIngredients = [];
+
+  // Check if any required ingredient matches the product name
+  requiredIngredients.forEach(ingredient => {
+    if (productName.toLowerCase().includes(ingredient.toLowerCase())) {
+      finalMatchingIngredients.push(ingredient); // Add the ingredient itself if the product name contains it
+    }
+  });
+
+  // Now get matching ingredients from the actual product ingredients
+  const ingredientMatches = requiredIngredients.filter(ingredient =>
+    productIngredients.some(prodIngred =>
+      prodIngred.toLowerCase().includes(ingredient.toLowerCase())
+    )
+  );
+
+  // Combine both matches (name match and ingredient matches)
+  return [...new Set([...finalMatchingIngredients, ...ingredientMatches])]; // Ensure no duplicates
+};
+
 
   return (
     <ResultsContainer>
@@ -196,45 +215,45 @@ function Results() {
         <h2>Recommended Products</h2>
         <ProductSection>
           {recommendedProducts.length > 0 ? (
-            recommendedProducts.map((product, index) => {
-              const { product_name, price, clean_ingreds, product_url } = product;
+          recommendedProducts.map((product, index) => {
+            const { product_name, price, clean_ingreds, product_url } = product;
 
-              // Safety check to ensure product has the required properties
-              if (!product_name || !price || !clean_ingreds || !product_url) {
-                console.warn(`Product missing required fields:`, product);
-                return null; // Skip this product if it has missing fields
-              }
+            // Safety check to ensure product has the required properties
+            if (!product_name || !price || !clean_ingreds || !product_url) {
+              console.warn(`Product missing required fields:`, product);
+              return null; // Skip this product if it has missing fields
+            }
 
-              // Parse the product's ingredients
-              const productIngredients = clean_ingreds
-                .replace(/[\[\]']/g, '')
-                .split(', ')
-                .map(i => i.trim());
+            // Parse the product's ingredients
+            const productIngredients = clean_ingreds
+              .replace(/[\[\]']/g, '')  // Clean up the ingredients string
+              .split(', ')               // Split into array
+              .map(i => i.trim());       // Trim whitespace
 
-              // Get the matching required ingredients for this product
-              const matchingIngredients = getMatchingIngredients(productIngredients, recommendedIngredients);
-              console.log(`Required Ingredients found in Recommended Product #${index + 1}:\n`, matchingIngredients);
+            // Get the matching required ingredients for this product
+            const matchingIngredients = getMatchingIngredients(productIngredients, recommendedIngredients, product_name);
+            console.log(`Required Ingredients found in Recommended Product #${index + 1}:\n`, matchingIngredients);
 
-              return (
-                <ProductCard key={index}>
-                  <h3>{product_name}</h3>
-                  <p><strong>Price:</strong> {price}</p>
+            return (
+              <ProductCard key={index}>
+                <h3>{product_name}</h3>
+                <p><strong>Price:</strong> {price}</p>
 
-                  {/* Display matching ingredients as "pills" */}
-                  {matchingIngredients.length > 0 && (
-                    <IngredientChipContainer>
-                      {matchingIngredients.map((ingredient, idx) => (
-                        <IngredientChip key={idx}>{ingredient}</IngredientChip>
-                      ))}
-                    </IngredientChipContainer>
-                  )}
+                {/* Display matching ingredients as "pills" */}
+                {matchingIngredients.length > 0 && (
+                  <IngredientChipContainer>
+                    {matchingIngredients.map((ingredient, idx) => (
+                      <IngredientChip key={idx}>{ingredient}</IngredientChip>
+                    ))}
+                  </IngredientChipContainer>
+                )}
 
-                  <ProductLink href={product_url} target="_blank" rel="noopener noreferrer">
-                    Buy Now
-                  </ProductLink>
-                </ProductCard>
-              );
-            })
+                <ProductLink href={product_url} target="_blank" rel="noopener noreferrer">
+                  Buy Now
+                </ProductLink>
+              </ProductCard>
+            );
+          })
           ) : (
             <p>No products found.</p>
           )}
