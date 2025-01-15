@@ -57,6 +57,7 @@ export const fetchIngredients = async (skinType, isSensitive, concerns, concernT
 
     return uniqueIngredients;
 };
+
 export const fetchRecommendedProducts = async (requiredIngredients) => {
   if (!requiredIngredients?.length) return [];
 
@@ -76,34 +77,32 @@ export const fetchRecommendedProducts = async (requiredIngredients) => {
   const scoredProducts = products.map(product => {
     const productIngredients = parseIngredients(product.clean_ingreds);
 
-    // Count how many required ingredients are in this product's ingredients
-    const ingredientMatchCount = requiredIngredients.filter(required =>
+    // Collect matching ingredients (name matches and ingredient matches)
+    const matchingIngredients = requiredIngredients.filter(ingredient =>
       productIngredients.some(prodIngred =>
-        prodIngred.toLowerCase().includes(required.toLowerCase())
+        prodIngred.toLowerCase().includes(ingredient.toLowerCase())
       )
-    ).length;
+    );
 
     // Check if the product name matches any of the required ingredients
-    const nameMatchCount = requiredIngredients.filter(required =>
-      product.product_name.toLowerCase().includes(required.toLowerCase())
-    ).length;
-
-    // Combine ingredient match count and name match count
-    const totalMatchCount = ingredientMatchCount + nameMatchCount;
+    requiredIngredients.forEach(ingredient => {
+      if (product.product_name.toLowerCase().includes(ingredient.toLowerCase()) && !matchingIngredients.includes(ingredient)) {
+        matchingIngredients.push(ingredient); // Add name match if not already added
+      }
+    });
 
     return {
       ...product,
-      ingredientMatchCount,
-      nameMatchCount,
-      totalMatchCount
+      matchingIngredients,
+      matchCount: matchingIngredients.length // Store how many ingredients match
     };
   });
 
   // Filter out products with no matches
-  const filteredProducts = scoredProducts.filter(p => p.totalMatchCount > 0);
+  const filteredProducts = scoredProducts.filter(p => p.matchCount > 0);
 
-  // Sort products by total match count (highest first)
-  filteredProducts.sort((a, b) => b.totalMatchCount - a.totalMatchCount);
+  // Sort products by match count (highest first)
+  const sortedProducts = filteredProducts.sort((a, b) => b.matchCount - a.matchCount);
 
-  return filteredProducts;
+  return sortedProducts;
 };
