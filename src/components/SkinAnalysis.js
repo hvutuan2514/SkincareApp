@@ -151,14 +151,6 @@ const ProductCard = styled.a`
   }
 `;
 
-
-const ProductImage = styled.img`
-  width: 100%;
-  height: 150px;
-  object-fit: cover;
-  border-radius: 8px;
-`;
-
 const ProductName = styled.h4`
   margin: 10px 0;
   color: #2c3e50;
@@ -169,14 +161,6 @@ const ProductPrice = styled.p`
   color: #3498db;
 `;
 
-const IngredientSection = styled.div`
-  margin-bottom: 30px;
-`;
-
-const IngredientTitle = styled.h4`
-  color: #3498db;
-  margin-bottom: 15px;
-`;
 
 const IngredientChipContainer = styled.div`
   margin-top: 10px;
@@ -290,8 +274,8 @@ function SkinAnalysis() {
 
       const detectedConcerns = formatConcerns(data.result);
       console.log("data result", data.result);
-      console.log("D", detectedConcerns);
-      console.log("S", skinConcerns);
+      console.log("Detected Concerns (Formatted): \n", detectedConcerns);
+      console.log("Skin Concerns (Unformatted): \n", skinConcerns);
       
       const ingredients = await fetchIngredients(
         detectedSkinType,
@@ -346,22 +330,22 @@ function SkinAnalysis() {
     }
   };
   
+  // Function to find the recommended ingredients that the product contains
   const getMatchingIngredients = (productIngredients, requiredIngredients, productName) => {
     if (!Array.isArray(productIngredients) || !Array.isArray(requiredIngredients)) {
       return [];
     }
   
-    // Create an array to hold the final matching ingredients
     const finalMatchingIngredients = [];
   
-    // Check if any required ingredient matches the product name
+    // Crossreference ingredient to product Name
     requiredIngredients.forEach(ingredient => {
       if (productName.toLowerCase().includes(ingredient.toLowerCase())) {
         finalMatchingIngredients.push(ingredient); // Add the ingredient itself if the product name contains it
       }
     });
   
-    // Now get matching ingredients from the actual product ingredients
+    // Crossreference ingredient to product Ingredients
     const ingredientMatches = requiredIngredients.filter(ingredient =>
       productIngredients.some(prodIngred =>
         prodIngred.toLowerCase().includes(ingredient.toLowerCase())
@@ -446,46 +430,40 @@ function SkinAnalysis() {
           <AnalysisSection>
           <h3>Recommended Products</h3>
           <ProductGrid>
-  {analysis.products.map((product, index) => {
-    // Parse product ingredients if they are a string
-    let productIngredients = [];
-    if (typeof product.clean_ingreds === 'string') {
-      try {
-        // Replace single quotes with double quotes to make it valid JSON
-        const fixedIngredients = product.clean_ingreds.replace(/'/g, '"');
-        productIngredients = JSON.parse(fixedIngredients);
-      } catch (e) {
-        console.error('Error parsing ingredients:', e);
-      }
-    }
+            {analysis.products.map((product, index) => {
+              // Parse product ingredients if they are a string
+              let productIngredients = [];
+              if (typeof product.clean_ingreds === 'string') {
+                try {
+                  const fixedIngredients = product.clean_ingreds.replace(/'/g, '"');
+                  productIngredients = JSON.parse(fixedIngredients);
+                } catch (e) {
+                  console.error('Error parsing ingredients:', e);
+                }
+              }
 
-    const matchingIngredients = getMatchingIngredients(productIngredients, analysis.ingredients, product.product_name);
+              //Find the recommended ingredients in this recommended product (matched ingredients)
+              const matchingIngredients = getMatchingIngredients(productIngredients, analysis.ingredients, product.product_name);
+              console.log(`Required Ingredients found in Recommended Product #${index + 1}:\n`, matchingIngredients);
 
-    // Log matching ingredients for debugging
-    console.log(`Required Ingredients found in Recommended Product #${index + 1}:\n`, matchingIngredients);
+              return (
+                <ProductCard key={index} href={product.product_url} target="_blank" rel="noopener noreferrer">
+                  <ProductName>{product.product_name}</ProductName>
+                  <ProductPrice>{product.price}</ProductPrice>
 
-    return (
-      <ProductCard key={index} href={product.product_url} target="_blank" rel="noopener noreferrer">
-        <ProductName>{product.product_name}</ProductName>
-        <ProductPrice>{product.price}</ProductPrice>
-
-        {/* Display matching ingredients as "chips" */}
-        {matchingIngredients.length > 0 && (
-          <IngredientChipContainer>
-            {matchingIngredients.map((ingredient, idx) => (
-              <IngredientChip key={idx}>{ingredient}</IngredientChip>
-            ))}
-          </IngredientChipContainer>
-        )}
-      </ProductCard>
-    );
-  })}
-</ProductGrid>
-
+                  {/* Display matching ingredients as circular chips */}
+                  {matchingIngredients.length > 0 && (
+                    <IngredientChipContainer>
+                      {matchingIngredients.map((ingredient, idx) => (
+                        <IngredientChip key={idx}>{ingredient}</IngredientChip>
+                      ))}
+                    </IngredientChipContainer>
+                  )}
+                </ProductCard>
+              );
+            })}
+          </ProductGrid>
         </AnalysisSection>
-
-
-
         </AnalysisContainer>
       )}
     </Container>

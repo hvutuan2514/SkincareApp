@@ -78,19 +78,6 @@ const ProductLink = styled.a`
   }
 `;
 
-const IngredientsList = styled.ul`
-  list-style: none;
-  padding: 0;
-  margin-top: 10px;
-`;
-
-const IngredientItem = styled.li`
-  background: #e9ecef;
-  border-radius: 15px;
-  margin: 5px 0;
-  padding: 5px 10px;
-`;
-
 const IngredientChipContainer = styled.div`
   margin-top: 10px;
   display: flex;
@@ -147,32 +134,30 @@ function Results() {
     getRecommendations();
   }, [formData]);
 
-  // Function to find the required ingredients that the product covers
-const getMatchingIngredients = (productIngredients, requiredIngredients, productName) => {
-  if (!Array.isArray(productIngredients) || !Array.isArray(requiredIngredients)) {
-    return [];
-  }
-
-  // Create an array to hold the final matching ingredients
-  const finalMatchingIngredients = [];
-
-  // Check if any required ingredient matches the product name
-  requiredIngredients.forEach(ingredient => {
-    if (productName.toLowerCase().includes(ingredient.toLowerCase())) {
-      finalMatchingIngredients.push(ingredient); // Add the ingredient itself if the product name contains it
+  // Function to find the recommended ingredients that the product contains
+  const getMatchingIngredients = (productIngredients, requiredIngredients, productName) => {
+    if (!Array.isArray(productIngredients) || !Array.isArray(requiredIngredients)) {
+      return [];
     }
-  });
+    const finalMatchingIngredients = [];
 
-  // Now get matching ingredients from the actual product ingredients
-  const ingredientMatches = requiredIngredients.filter(ingredient =>
-    productIngredients.some(prodIngred =>
-      prodIngred.toLowerCase().includes(ingredient.toLowerCase())
-    )
-  );
+    // Crossreference ingredient to product Name
+    requiredIngredients.forEach(ingredient => {
+      if (productName.toLowerCase().includes(ingredient.toLowerCase())) {
+        finalMatchingIngredients.push(ingredient); // Add the ingredient itself if the product name contains it
+      }
+    });
 
-  // Combine both matches (name match and ingredient matches)
-  return [...new Set([...finalMatchingIngredients, ...ingredientMatches])]; // Ensure no duplicates
-};
+    // Crossreference ingredient to product Ingredients
+    const ingredientMatches = requiredIngredients.filter(ingredient =>
+      productIngredients.some(prodIngred =>
+        prodIngred.toLowerCase().includes(ingredient.toLowerCase())
+      )
+    );
+
+    // Combine both matches (name match and ingredient matches)
+    return [...new Set([...finalMatchingIngredients, ...ingredientMatches])]; // Ensure no duplicates
+  };
 
 
   return (
@@ -230,7 +215,7 @@ const getMatchingIngredients = (productIngredients, requiredIngredients, product
               .split(', ')               // Split into array
               .map(i => i.trim());       // Trim whitespace
 
-            // Get the matching required ingredients for this product
+            // Check which recommended ingredients the recommended product contains (match)
             const matchingIngredients = getMatchingIngredients(productIngredients, recommendedIngredients, product_name);
             console.log(`Required Ingredients found in Recommended Product #${index + 1}:\n`, matchingIngredients);
 
@@ -239,7 +224,7 @@ const getMatchingIngredients = (productIngredients, requiredIngredients, product
                 <h3>{product_name}</h3>
                 <p><strong>Price:</strong> {price}</p>
 
-                {/* Display matching ingredients as "pills" */}
+                {/* Display matching ingredients as circular chips */}
                 {matchingIngredients.length > 0 && (
                   <IngredientChipContainer>
                     {matchingIngredients.map((ingredient, idx) => (
