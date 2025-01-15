@@ -15,7 +15,7 @@ export const fetchIngredients = async (skinType, isSensitive, concerns, concernT
       .select(`
         ingredients:ingredient_id (name)
       `)
-      .eq('skin_type_id', skinTypeData?.id)
+      .eq('skin_type_id', skinType?.id)
       .eq('is_sensitive', isSensitive);
   
     // Fetch concern IDS

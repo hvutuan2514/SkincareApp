@@ -151,8 +151,16 @@ const ProductCard = styled.a`
   }
 `;
 
+
+const ProductImage = styled.img`
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 8px;
+`;
+
 const ProductName = styled.h4`
-  margin: 0 0 10px 0;
+  margin: 10px 0;
   color: #2c3e50;
 `;
 
@@ -169,6 +177,25 @@ const IngredientTitle = styled.h4`
   color: #3498db;
   margin-bottom: 15px;
 `;
+
+const IngredientChipContainer = styled.div`
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+`;
+
+const IngredientChip = styled.div`
+  background-color: #3498db;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 14px;
+  font-weight: bold;
+  display: inline-block;
+  text-transform: capitalize;
+`;
+
 
 
 function SkinAnalysis() {
@@ -219,6 +246,7 @@ function SkinAnalysis() {
     });
     return concerns;
   };
+  
 
   const analyzeSkin = async (imageFile) => {
     setLoading(true);
@@ -273,6 +301,7 @@ function SkinAnalysis() {
       );
 
       const recommendedProducts = await fetchRecommendedProducts(ingredients);
+      console.log("recs: \n", recommendedProducts);
 
       setAnalysis({
         skinType: detectedSkinType?.name || 'Unknown',
@@ -317,6 +346,19 @@ function SkinAnalysis() {
     }
   };
   
+  const getMatchingIngredients = (productIngredients, requiredIngredients) => {
+    if (!Array.isArray(productIngredients) || !Array.isArray(requiredIngredients)) {
+      return [];
+    }
+  
+    return requiredIngredients.filter(ingredient =>
+      productIngredients.some(prodIngred =>
+        prodIngred.toLowerCase().includes(ingredient.toLowerCase())
+      )
+    );
+  };
+
+
 
   return (
     <Container>
@@ -389,26 +431,47 @@ function SkinAnalysis() {
           </AnalysisSection>
 
           <AnalysisSection>
-        <h3>Recommended Products by Ingredient</h3>
-        {Object.entries(analysis.products).map(([ingredient, products]) => (
-            <IngredientSection key={ingredient}>
-            <IngredientTitle>Products containing {ingredient}:</IngredientTitle>
-            <ProductGrid>
-                {products.map((product, index) => (
-                <ProductCard 
-                    key={index} 
-                    href={product.product_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    <ProductName>{product.product_name}</ProductName>
-                    <ProductPrice>{product.price}</ProductPrice>
+          <h3>Recommended Products</h3>
+          <ProductGrid>
+            {analysis.products.map((product, index) => {
+              // Parse product ingredients if they are a string
+              let productIngredients = [];
+              if (typeof product.clean_ingreds === 'string') {
+                try {
+                  // Replace single quotes with double quotes to make it valid JSON
+                  const fixedIngredients = product.clean_ingreds.replace(/'/g, '"');
+                  productIngredients = JSON.parse(fixedIngredients);
+                } catch (e) {
+                  console.error('Error parsing ingredients:', e);
+                }
+              }
+
+              const matchingIngredients = getMatchingIngredients(productIngredients, analysis.ingredients);
+
+              // Log matching ingredients for debugging
+              console.log("Matching Ingredients for product: ", matchingIngredients);
+
+              return (
+                <ProductCard key={index} href={product.product_url} target="_blank" rel="noopener noreferrer">
+                  <ProductName>{product.product_name}</ProductName>
+                  <ProductPrice>{product.price}</ProductPrice>
+
+                  {/* Display matching ingredients as "chips" */}
+                  {matchingIngredients.length > 0 && (
+                    <IngredientChipContainer>
+                      {matchingIngredients.map((ingredient, idx) => (
+                        <IngredientChip key={idx}>{ingredient}</IngredientChip>
+                      ))}
+                    </IngredientChipContainer>
+                  )}
                 </ProductCard>
-                ))}
-            </ProductGrid>
-            </IngredientSection>
-        ))}
+              );
+            })}
+          </ProductGrid>
         </AnalysisSection>
+
+
+
         </AnalysisContainer>
       )}
     </Container>

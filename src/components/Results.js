@@ -236,6 +236,7 @@ const flattenedProducts = Object.entries(recommendedProducts || {})
 
               // Get the matching required ingredients for this product
               const matchingIngredients = getMatchingIngredients(productIngredients, recommendedIngredients);
+              console.log("Product ingredients: \n", productIngredients)
 
               return (
                 <ProductCard key={index}>
