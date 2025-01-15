@@ -123,13 +123,6 @@ function Results() {
         const { skinType, isSensitive, skinConcerns } = formData;
         console.log('Fetching ingredients for skinType:', skinType, '\nisSensitive:', isSensitive, '\nskinConcerns:', skinConcerns);
   
-        // Map only "Blackheads" for now
-        const formattedConcerns = skinConcerns
-        ? skinConcerns.map(concern => (concern === 'Blackheads' ? 'blackhead' : concern))
-        : [];
-  
-        //console.log('Testing with formatted concerns:', formattedConcerns);
-
         // Fetching ingredients
         const ingredients = await fetchIngredients(
           skinType,
@@ -137,13 +130,11 @@ function Results() {
           skinConcerns,  
           {}  // Default to general subtypes
         );
-       // console.log('Fetched Ingredients:', ingredients);
   
-       console.log('test');
+       
         // Fetching recommended products
         const products = await fetchRecommendedProducts(ingredients);
         console.log('Fetched Recommended Products:', products);
-        console.log('Type of products:', typeof products);
   
         // Set the state with the fetched data
         setRecommendedIngredients(ingredients);
@@ -156,28 +147,14 @@ function Results() {
     getRecommendations();
   }, [formData]);
 
-  // Flatten and sort products by match count
-const flattenedProducts = Object.entries(recommendedProducts || {})
-.flatMap(([ingredient, products]) => 
-  Array.isArray(products)
-    ? products.map(product => ({
-        ...product,
-        matchCount: product.matchCount || 0,
-        ingredient
-      }))
-    : [] // If products is not an array, return an empty array
-)
-.sort((a, b) => b.matchCount - a.matchCount); // Sort by matchCount (most matches first)
-
- // Function to find the required ingredients that the product covers
- const getMatchingIngredients = (productIngredients, requiredIngredients) => {
-  return requiredIngredients.filter(ingredient =>
-    productIngredients.some(prodIngred =>
-      prodIngred.toLowerCase().includes(ingredient.toLowerCase())
-    )
-  );
-};
-
+  // Function to find the required ingredients that the product covers
+  const getMatchingIngredients = (productIngredients, requiredIngredients) => {
+    return requiredIngredients.filter(ingredient =>
+      productIngredients.some(prodIngred =>
+        prodIngred.toLowerCase().includes(ingredient.toLowerCase())
+      )
+    );
+  };
 
   return (
     <ResultsContainer>
@@ -236,7 +213,7 @@ const flattenedProducts = Object.entries(recommendedProducts || {})
 
               // Get the matching required ingredients for this product
               const matchingIngredients = getMatchingIngredients(productIngredients, recommendedIngredients);
-              console.log("Product ingredients: \n", productIngredients)
+              console.log(`Required Ingredients found in Recommended Product #${index + 1}:\n`, matchingIngredients);
 
               return (
                 <ProductCard key={index}>

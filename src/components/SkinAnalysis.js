@@ -301,7 +301,7 @@ function SkinAnalysis() {
       );
 
       const recommendedProducts = await fetchRecommendedProducts(ingredients);
-      console.log("recs: \n", recommendedProducts);
+      console.log("Recommended Products - Print: \n", recommendedProducts);
 
       setAnalysis({
         skinType: detectedSkinType?.name || 'Unknown',
@@ -449,7 +449,8 @@ function SkinAnalysis() {
               const matchingIngredients = getMatchingIngredients(productIngredients, analysis.ingredients);
 
               // Log matching ingredients for debugging
-              console.log("Matching Ingredients for product: ", matchingIngredients);
+              console.log(`Required Ingredients found in Recommended Product #${index + 1}:\n`, matchingIngredients);
+
 
               return (
                 <ProductCard key={index} href={product.product_url} target="_blank" rel="noopener noreferrer">
