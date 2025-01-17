@@ -11,8 +11,8 @@ TODO:
     - match product to MOST ingredients covered
 3) no skin concern --> still rec products
 4) style website
-5) put an image per product?
-6) NEXT: Feature to filter product cards based off pricing
+5) put an image per product --> attempt to fetch image from url
+6) NEXT: Feature to filter product cards based off pricing and routine steps
 
 DONE:
 1) skin concern to ingredient - database + parsing algorithm 
