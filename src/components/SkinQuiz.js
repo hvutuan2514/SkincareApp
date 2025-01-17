@@ -146,7 +146,6 @@ function SkinQuiz() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     skinType: '',
-    skinColor: '',
     isSensitive: false,
     skinConcerns: [],
     concernTypes: {},
@@ -156,7 +155,6 @@ function SkinQuiz() {
   const { data: skinConcerns, error: skinConcernsError } = useFetchSupabaseData('skin_concerns', 'id, name');
   const { data: routineSteps, error: routineStepsError } = useFetchSupabaseData('routine_steps', 'id, name');
   const { data: skinTypes, error: skinTypesError } = useFetchSupabaseData('skin_type', 'id, name');
-  const { data: skinColors, error: skinColorsError } = useFetchSupabaseData('skin_color', 'id, name');
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -201,23 +199,6 @@ function SkinQuiz() {
           ))}
         </Select>
         {skinTypesError && <p style={{ color: 'red' }}>Failed to load skin types: {skinTypesError.message}</p>}
-      </QuestionSection>
-
-      <QuestionSection>
-        <h2>What's your skin color?</h2>
-        <Select
-          value={formData.skinColor}
-          onChange={(e) => setFormData({...formData, skinColor: e.target.value})}
-          required
-        >
-          <option value="">Select your skin color</option>
-          {skinColors && skinColors.map(skinColor => (
-            <option key={skinColor.id} value={skinColor.name}>
-              {skinColor.name}
-            </option>
-          ))}
-        </Select>
-        {skinColorsError && <p style={{ color: 'red' }}>Failed to load skin colors: {skinColorsError.message}</p>}
       </QuestionSection>
 
       <QuestionSection>
