@@ -38,3 +38,6 @@
     - reset filter (remove all filters)
 - SkinAnalys.js: added a filter button
 - utils/Filter.js (new file)
+- TODO
+    - allow min/max price to be 0 
+    - if filters produce 0 results, show "no products found"
