@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import { fetchIngredients, fetchRecommendedProducts } from '../utils/ConcernToProduct';
+import { handleFilter, resetFilters } from '../utils/Filters';
 
 
 const ErrorText = styled.p`
@@ -11,10 +12,14 @@ const ErrorText = styled.p`
   margin-top: 10px;
 `;
 
-const FilterButton = styled.button`
+/*
+This code puts FilterButton NEXT TO "Recommended Products" instead of below
   position: absolute;
-  top: 10px; /* Adjust the spacing as needed */
-  right: 10px; /* Adjust the spacing as needed */
+  top: 10px; 
+  right: 10px; 
+*/
+const FilterButton = styled.button`
+  margin-top: 10px; 
   background-color: #4caf50;
   color: white;
   border: none;
@@ -173,10 +178,10 @@ function Results() {
   const [recommendedProducts, setRecommendedProducts] = useState([]); // Changed from {} to []
 
   //Constants for filter
-  const [filteredProducts, setFilteredProducts] = useState([]); // For filtered display
-  const [minPrice, setMinPrice] = useState(""); // Min price filter
-  const [maxPrice, setMaxPrice] = useState(""); // Max price filter
-  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false); // Modal state
+  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
@@ -231,43 +236,6 @@ function Results() {
     // Combine both matches (name match and ingredient matches)
     return [...new Set([...finalMatchingIngredients, ...ingredientMatches])]; // Ensure no duplicates
   };
-
-  const handleFilter = () => {
-    const min = parseFloat(minPrice);
-    const max = parseFloat(maxPrice);
-  
-    // Check for valid price ranges
-    if (min <= 0 || max <= 0) {
-      setErrorMessage("Price cannot be zero or negative.");
-      return;
-    }
-  
-    if (min > max) {
-      setErrorMessage("Minimum price cannot be higher than maximum price.");
-      return;
-    }
-  
-    // If validation passes, filter the products
-    const filtered = recommendedProducts.filter(product => {
-      const price = parseFloat(product.price.replace(/[^\d.]/g, ""));
-  
-      return (!min || price >= min) && (!max || price <= max);
-    });
-  
-    setFilteredProducts(filtered);
-    setIsFilterModalOpen(false); // Close modal after filtering
-    setErrorMessage(''); // Clear any previous errors
-  };
-  
-  const resetFilters = () => {
-    setMinPrice(''); // Reset minimum price
-    setMaxPrice(''); // Reset maximum price
-    setFilteredProducts(recommendedProducts); // Show all products
-    setIsFilterModalOpen(false); // Close the modal
-    setErrorMessage(''); // Clear error message
-  };
-  
-
   
   return (
     <ResultsContainer>
@@ -307,7 +275,7 @@ function Results() {
 
       <Section>
         <h2>Recommended Products</h2>
-        <FilterButton onClick={() => setIsFilterModalOpen(true)}>Filter</FilterButton>
+        <FilterButton onClick={() => setIsFilterModalOpen(true)}>Filter By Price</FilterButton>
 
         <ProductSection>
         {filteredProducts.length > 0 ? (
@@ -373,19 +341,17 @@ function Results() {
               placeholder="Max Price"
             />
             <div>
-              <ModalButton onClick={handleFilter}>Apply</ModalButton>
+              <ModalButton onClick={() => handleFilter(recommendedProducts, minPrice, maxPrice, setFilteredProducts, setIsFilterModalOpen, setErrorMessage)}>Apply</ModalButton>
               <ModalButton onClick={() => setIsFilterModalOpen(false)}>Cancel</ModalButton>
-              <ModalButton onClick={resetFilters} style={{ backgroundColor: "#f44336", color: "white" }}>
+              <ModalButton onClick={() => resetFilters(setMinPrice, setMaxPrice, setFilteredProducts, recommendedProducts, setIsFilterModalOpen, setErrorMessage)} style={{ backgroundColor: "#f44336", color: "white" }}>
                 Reset Filters
               </ModalButton>
             </div>
 
-            {errorMessage && (
-              <ErrorText>{errorMessage}</ErrorText>
-            )}
+            {errorMessage && <ErrorText>{errorMessage}</ErrorText>}
           </ModalContent>
-      </ModalOverlay>
-    )}
+        </ModalOverlay>
+      )}
     </ResultsContainer>
   );
 }

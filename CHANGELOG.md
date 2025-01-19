@@ -36,3 +36,5 @@
     - Min / max price cant be 0 
     - cancel (step out of filter option)
     - reset filter (remove all filters)
+- SkinAnalys.js: added a filter button
+- utils/Filter.js (new file)

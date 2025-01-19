@@ -4,6 +4,81 @@ import styled from 'styled-components';
 import supabase from '../config/supabaseClient';
 import Pica from 'pica'; // Image resizing
 import { fetchIngredients, fetchRecommendedProducts } from '../utils/ConcernToProduct';
+import { handleFilter, resetFilters } from '../utils/Filters';
+
+const ErrorText = styled.p`
+  color: red;
+  font-size: 0.9rem;
+  margin-top: 10px;
+`;
+
+const ProductHeader = styled.div`
+  display: flex;
+  justify-content: space-between; /* Spreads the content out on opposite sides */
+  align-items: center; /* Vertically centers the items */
+  margin-bottom: 10px; /* Optional: Adjust for spacing between header and product grid */
+`;
+
+const FilterButton = styled.button`
+  background-color: #4CAF50;
+  color: white;
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 10px; /* Adds space above the button */
+
+  &:hover {
+    background-color: #45a049;
+  }
+`;
+
+
+const ModalOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+`;
+
+const ModalContent = styled.div`
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  width: 400px;
+  max-width: 90%;
+  text-align: center;
+`;
+
+const ModalInput = styled.input`
+  width: calc(100% - 20px);
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+`;
+
+const ModalButton = styled.button`
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  margin: 0 5px;
+  &:hover {
+    background-color: #45a049;
+  }
+`;
 
 
 const Container = styled.div`
@@ -188,7 +263,14 @@ function SkinAnalysis() {
   const [loading, setLoading] = useState(false);
   const [skinTypes, setSkinTypes] = useState([]);
   const [skinConcerns, setSkinConcerns] = useState([]);
-  const [error, setError] = useState(null);  
+  const [error, setError] = useState(null); 
+  
+  //Filter constants
+  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     fetchSkinData();
@@ -429,41 +511,78 @@ function SkinAnalysis() {
 
           <AnalysisSection>
           <h3>Recommended Products</h3>
-          <ProductGrid>
-            {analysis.products.map((product, index) => {
-              // Parse product ingredients if they are a string
-              let productIngredients = [];
-              if (typeof product.clean_ingreds === 'string') {
-                try {
-                  const fixedIngredients = product.clean_ingreds.replace(/'/g, '"');
-                  productIngredients = JSON.parse(fixedIngredients);
-                } catch (e) {
-                  console.error('Error parsing ingredients:', e);
-                }
-              }
+          <FilterButton onClick={() => setIsFilterModalOpen(true)}>Filter By Price</FilterButton>
+          <ProductHeader>
+    
+  </ProductHeader>
+  
+  <ProductGrid>
+    {(filteredProducts.length > 0 ? filteredProducts : analysis.products).map((product, index) => {
+      // Parse product ingredients if they are a string
+      let productIngredients = [];
+      if (typeof product.clean_ingreds === 'string') {
+        try {
+          const fixedIngredients = product.clean_ingreds.replace(/'/g, '"');
+          productIngredients = JSON.parse(fixedIngredients);
+        } catch (e) {
+          console.error('Error parsing ingredients:', e);
+        }
+      }
 
-              //Find the recommended ingredients in this recommended product (matched ingredients)
-              const matchingIngredients = getMatchingIngredients(productIngredients, analysis.ingredients, product.product_name);
-              console.log(`Required Ingredients found in Recommended Product #${index + 1}:\n`, matchingIngredients);
+      // Find the recommended ingredients in this recommended product (matched ingredients)
+      const matchingIngredients = getMatchingIngredients(productIngredients, analysis.ingredients, product.product_name);
+      console.log(`Required Ingredients found in Recommended Product #${index + 1}:\n`, matchingIngredients);
 
-              return (
-                <ProductCard key={index} href={product.product_url} target="_blank" rel="noopener noreferrer">
-                  <ProductName>{product.product_name}</ProductName>
-                  <ProductPrice>{product.price}</ProductPrice>
+      return (
+        <ProductCard key={index} href={product.product_url} target="_blank" rel="noopener noreferrer">
+          <ProductName>{product.product_name}</ProductName>
+          <ProductPrice>{product.price}</ProductPrice>
 
-                  {/* Display matching ingredients as circular chips */}
-                  {matchingIngredients.length > 0 && (
-                    <IngredientChipContainer>
-                      {matchingIngredients.map((ingredient, idx) => (
-                        <IngredientChip key={idx}>{ingredient}</IngredientChip>
-                      ))}
-                    </IngredientChipContainer>
-                  )}
-                </ProductCard>
-              );
-            })}
-          </ProductGrid>
-        </AnalysisSection>
+          {/* Display matching ingredients as circular chips */}
+          {matchingIngredients.length > 0 && (
+            <IngredientChipContainer>
+              {matchingIngredients.map((ingredient, idx) => (
+                <IngredientChip key={idx}>{ingredient}</IngredientChip>
+              ))}
+            </IngredientChipContainer>
+          )}
+        </ProductCard>
+      );
+    })}
+  </ProductGrid>
+
+  {/* Filter Modal */}
+  {isFilterModalOpen && (
+    <ModalOverlay onClick={() => setIsFilterModalOpen(false)}>
+      <ModalContent onClick={(e) => e.stopPropagation()}>
+        <h3>Filter Products</h3>
+        <ModalInput
+          type="number"
+          value={minPrice}
+          onChange={(e) => setMinPrice(e.target.value)}
+          placeholder="Min Price"
+        />
+        <ModalInput
+          type="number"
+          value={maxPrice}
+          onChange={(e) => setMaxPrice(e.target.value)}
+          placeholder="Max Price"
+        />
+        <div>
+          <ModalButton onClick={() => handleFilter(analysis.products, minPrice, maxPrice, setFilteredProducts, setIsFilterModalOpen, setErrorMessage)}>
+            Apply
+          </ModalButton>
+          <ModalButton onClick={() => setIsFilterModalOpen(false)}>Cancel</ModalButton>
+          <ModalButton onClick={() => resetFilters(setMinPrice, setMaxPrice, setFilteredProducts, analysis.products, setIsFilterModalOpen, setErrorMessage)} style={{ backgroundColor: "#f44336", color: "white" }}>
+            Reset Filters
+          </ModalButton>
+        </div>
+
+        {errorMessage && <ErrorText>{errorMessage}</ErrorText>}
+      </ModalContent>
+    </ModalOverlay>
+  )}
+</AnalysisSection>
         </AnalysisContainer>
       )}
     </Container>
