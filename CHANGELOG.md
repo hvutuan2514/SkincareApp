@@ -29,3 +29,10 @@
     - Puts product cards in order correctly
     - Issue: New fetchRecommendedProducts() algorithm shows less results than the old one (like 4-5 fewer)
     - Issue: Logs show "Required Ingredients found in Recommended Product #" twice. Shows X number of products once, then X again. 
+
+1/18/25 - Ananya
+- Result.js: Added a filter button 
+    - Min price can't be higher than max
+    - Min / max price cant be 0 
+    - cancel (step out of filter option)
+    - reset filter (remove all filters)

@@ -4,6 +4,75 @@ import { useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import { fetchIngredients, fetchRecommendedProducts } from '../utils/ConcernToProduct';
 
+
+const ErrorText = styled.p`
+  color: red;
+  font-size: 0.9rem;
+  margin-top: 10px;
+`;
+
+const FilterButton = styled.button`
+  position: absolute;
+  top: 10px; /* Adjust the spacing as needed */
+  right: 10px; /* Adjust the spacing as needed */
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  &:hover {
+    background-color: #45a049;
+  }
+`;
+
+const ModalOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+`;
+
+const ModalContent = styled.div`
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  width: 400px;
+  max-width: 90%;
+  text-align: center;
+`;
+
+const ModalInput = styled.input`
+  width: calc(100% - 20px);
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+`;
+
+const ModalButton = styled.button`
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  margin: 0 5px;
+  &:hover {
+    background-color: #45a049;
+  }
+`;
+
 const ResultsContainer = styled.div`
   max-width: 800px;
   margin: 0 auto;
@@ -16,6 +85,7 @@ const Section = styled.div`
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   margin-bottom: 20px;
+  position: relative; /* Ensure FilterButton is positioned relative to this container */
 `;
 
 const UserProfile = styled.div`
@@ -100,7 +170,14 @@ function Results() {
   const location = useLocation();
   const { formData } = location.state || { formData: {} };
   const [recommendedIngredients, setRecommendedIngredients] = useState([]);
-  const [recommendedProducts, setRecommendedProducts] = useState({});
+  const [recommendedProducts, setRecommendedProducts] = useState([]); // Changed from {} to []
+
+  //Constants for filter
+  const [filteredProducts, setFilteredProducts] = useState([]); // For filtered display
+  const [minPrice, setMinPrice] = useState(""); // Min price filter
+  const [maxPrice, setMaxPrice] = useState(""); // Max price filter
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false); // Modal state
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     const getRecommendations = async () => {
@@ -108,24 +185,18 @@ function Results() {
         if (!formData) return;
   
         const { skinType, isSensitive, skinConcerns } = formData;
-        console.log('Fetching ingredients for skinType:', skinType, '\nisSensitive:', isSensitive, '\nskinConcerns:', skinConcerns);
   
-        // Fetching ingredients
         const ingredients = await fetchIngredients(
           skinType,
           isSensitive,
-          skinConcerns,  
-          {}  // Default to general subtypes
+          skinConcerns,
+          {}
         );
   
-       
-        // Fetching recommended products
         const products = await fetchRecommendedProducts(ingredients);
-        console.log('Fetched Recommended Products:', products);
-  
-        // Set the state with the fetched data
         setRecommendedIngredients(ingredients);
-        setRecommendedProducts(products);
+        setRecommendedProducts(products); // Ensure this is an array
+        setFilteredProducts(products); // Initialize filtered list with all products
       } catch (error) {
         console.error('Error fetching recommendations:', error);
       }
@@ -133,6 +204,8 @@ function Results() {
   
     getRecommendations();
   }, [formData]);
+
+
 
   // Function to find the recommended ingredients that the product contains
   const getMatchingIngredients = (productIngredients, requiredIngredients, productName) => {
@@ -159,7 +232,43 @@ function Results() {
     return [...new Set([...finalMatchingIngredients, ...ingredientMatches])]; // Ensure no duplicates
   };
 
+  const handleFilter = () => {
+    const min = parseFloat(minPrice);
+    const max = parseFloat(maxPrice);
+  
+    // Check for valid price ranges
+    if (min <= 0 || max <= 0) {
+      setErrorMessage("Price cannot be zero or negative.");
+      return;
+    }
+  
+    if (min > max) {
+      setErrorMessage("Minimum price cannot be higher than maximum price.");
+      return;
+    }
+  
+    // If validation passes, filter the products
+    const filtered = recommendedProducts.filter(product => {
+      const price = parseFloat(product.price.replace(/[^\d.]/g, ""));
+  
+      return (!min || price >= min) && (!max || price <= max);
+    });
+  
+    setFilteredProducts(filtered);
+    setIsFilterModalOpen(false); // Close modal after filtering
+    setErrorMessage(''); // Clear any previous errors
+  };
+  
+  const resetFilters = () => {
+    setMinPrice(''); // Reset minimum price
+    setMaxPrice(''); // Reset maximum price
+    setFilteredProducts(recommendedProducts); // Show all products
+    setIsFilterModalOpen(false); // Close the modal
+    setErrorMessage(''); // Clear error message
+  };
+  
 
+  
   return (
     <ResultsContainer>
       <Section>
@@ -195,19 +304,20 @@ function Results() {
           ))}
         </IngredientList>
       </Section>
-      
+
       <Section>
         <h2>Recommended Products</h2>
-        <ProductSection>
-          {recommendedProducts.length > 0 ? (
-          recommendedProducts.map((product, index) => {
-            const { product_name, price, clean_ingreds, product_url } = product;
+        <FilterButton onClick={() => setIsFilterModalOpen(true)}>Filter</FilterButton>
 
-            // Safety check to ensure product has the required properties
-            if (!product_name || !price || !clean_ingreds || !product_url) {
-              console.warn(`Product missing required fields:`, product);
-              return null; // Skip this product if it has missing fields
-            }
+        <ProductSection>
+        {filteredProducts.length > 0 ? (
+            filteredProducts.map((product, index) => {
+              const { product_name, price, clean_ingreds, product_url } = product;
+
+              if (!product_name || !price || !clean_ingreds || !product_url) {
+                console.warn(`Product missing required fields:`, product);
+                return null;
+              }
 
             // Parse the product's ingredients
             const productIngredients = clean_ingreds
@@ -245,6 +355,37 @@ function Results() {
         </ProductSection>
       </Section>
 
+      {/* Filter Modal */}
+      {isFilterModalOpen && (
+        <ModalOverlay onClick={() => setIsFilterModalOpen(false)}>
+          <ModalContent onClick={(e) => e.stopPropagation()}>
+            <h3>Filter Products</h3>
+            <ModalInput
+              type="number"
+              value={minPrice}
+              onChange={(e) => setMinPrice(e.target.value)}
+              placeholder="Min Price"
+            />
+            <ModalInput
+              type="number"
+              value={maxPrice}
+              onChange={(e) => setMaxPrice(e.target.value)}
+              placeholder="Max Price"
+            />
+            <div>
+              <ModalButton onClick={handleFilter}>Apply</ModalButton>
+              <ModalButton onClick={() => setIsFilterModalOpen(false)}>Cancel</ModalButton>
+              <ModalButton onClick={resetFilters} style={{ backgroundColor: "#f44336", color: "white" }}>
+                Reset Filters
+              </ModalButton>
+            </div>
+
+            {errorMessage && (
+              <ErrorText>{errorMessage}</ErrorText>
+            )}
+          </ModalContent>
+      </ModalOverlay>
+    )}
     </ResultsContainer>
   );
 }
