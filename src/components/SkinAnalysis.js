@@ -271,6 +271,15 @@ function SkinAnalysis() {
   const [maxPrice, setMaxPrice] = useState('');
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  //Indicates whether the scan just happened or not. Is set to false once the user adds a filter.
+  const [rightAfterScan, setRightAfterScan] = useState(true); 
+  useEffect(() => {
+    if (filteredProducts.length > 0) {
+      setRightAfterScan(false); // Set it to false once a filter is applied
+    }
+  }, [filteredProducts]);
+
+
 
   useEffect(() => {
     fetchSkinData();
@@ -368,6 +377,7 @@ function SkinAnalysis() {
 
       const recommendedProducts = await fetchRecommendedProducts(ingredients);
       console.log("Recommended Products - Print: \n", recommendedProducts);
+      console.log('Right after scan', rightAfterScan);
 
       setAnalysis({
         skinType: detectedSkinType?.name || 'Unknown',
@@ -510,79 +520,120 @@ function SkinAnalysis() {
           </AnalysisSection>
 
           <AnalysisSection>
-          <h3>Recommended Products</h3>
-          <FilterButton onClick={() => setIsFilterModalOpen(true)}>Filter By Price</FilterButton>
-          <ProductHeader>
+            <h3>Recommended Products</h3>
+            <FilterButton onClick={() => setIsFilterModalOpen(true)}>Filter By Price</FilterButton>
     
-  </ProductHeader>
-  
-  <ProductGrid>
-    {(filteredProducts.length > 0 ? filteredProducts : analysis.products).map((product, index) => {
-      // Parse product ingredients if they are a string
-      let productIngredients = [];
-      if (typeof product.clean_ingreds === 'string') {
-        try {
-          const fixedIngredients = product.clean_ingreds.replace(/'/g, '"');
-          productIngredients = JSON.parse(fixedIngredients);
-        } catch (e) {
-          console.error('Error parsing ingredients:', e);
-        }
-      }
+            <ProductGrid>
+            {filteredProducts.length > 0 ? (
+              filteredProducts.map((product, index) => {
+                // Parse product ingredients if they are a string
+                console.log('Filtered products -- Right after scan', rightAfterScan);
+                let productIngredients = [];
+                if (typeof product.clean_ingreds === 'string') {
+                  try {
+                    const fixedIngredients = product.clean_ingreds.replace(/'/g, '"');
+                    productIngredients = JSON.parse(fixedIngredients);
+                  } catch (e) {
+                    console.error('Error parsing ingredients:', e);
+                  }
+                }
 
-      // Find the recommended ingredients in this recommended product (matched ingredients)
-      const matchingIngredients = getMatchingIngredients(productIngredients, analysis.ingredients, product.product_name);
-      console.log(`Required Ingredients found in Recommended Product #${index + 1}:\n`, matchingIngredients);
+                // Find the recommended ingredients in this recommended product (matched ingredients)
+                const matchingIngredients = getMatchingIngredients(productIngredients, analysis.ingredients, product.product_name);
+                console.log(`Required Ingredients found in Recommended Product #${index + 1}:\n`, matchingIngredients);
 
-      return (
-        <ProductCard key={index} href={product.product_url} target="_blank" rel="noopener noreferrer">
-          <ProductName>{product.product_name}</ProductName>
-          <ProductPrice>{product.price}</ProductPrice>
+                return (
+                  <ProductCard key={index} href={product.product_url} target="_blank" rel="noopener noreferrer">
+                    <ProductName>{product.product_name}</ProductName>
+                    <ProductPrice>{product.price}</ProductPrice>
 
-          {/* Display matching ingredients as circular chips */}
-          {matchingIngredients.length > 0 && (
-            <IngredientChipContainer>
-              {matchingIngredients.map((ingredient, idx) => (
-                <IngredientChip key={idx}>{ingredient}</IngredientChip>
-              ))}
-            </IngredientChipContainer>
+                    {/* Display matching ingredients as circular chips */}
+                    {matchingIngredients.length > 0 && (
+                      <IngredientChipContainer>
+                        {matchingIngredients.map((ingredient, idx) => (
+                          <IngredientChip key={idx}>{ingredient}</IngredientChip>
+                        ))}
+                      </IngredientChipContainer>
+                    )}
+                  </ProductCard>
+                );
+              })
+            ) : rightAfterScan ? (
+              // Show all products if right after scan and no filtered products
+            
+              analysis.products.map((product, index) => {
+                // Parse product ingredients if they are a string
+                console.log('NO filtered products & Right after scan=true, show all products \n', rightAfterScan);
+                let productIngredients = [];
+                if (typeof product.clean_ingreds === 'string') {
+                  try {
+                    const fixedIngredients = product.clean_ingreds.replace(/'/g, '"');
+                    productIngredients = JSON.parse(fixedIngredients);
+                  } catch (e) {
+                    console.error('Error parsing ingredients:', e);
+                  }
+                }
+
+                // Find the recommended ingredients in this recommended product (matched ingredients)
+                const matchingIngredients = getMatchingIngredients(productIngredients, analysis.ingredients, product.product_name);
+                console.log(`Required Ingredients found in Recommended Product #${index + 1}:\n`, matchingIngredients);
+
+                return (
+                  <ProductCard key={index} href={product.product_url} target="_blank" rel="noopener noreferrer">
+                    <ProductName>{product.product_name}</ProductName>
+                    <ProductPrice>{product.price}</ProductPrice>
+
+                    {/* Display matching ingredients as circular chips */}
+                    {matchingIngredients.length > 0 && (
+                      <IngredientChipContainer>
+                        {matchingIngredients.map((ingredient, idx) => (
+                          <IngredientChip key={idx}>{ingredient}</IngredientChip>
+                        ))}
+                      </IngredientChipContainer>
+                    )}
+                  </ProductCard>
+                );
+              })
+            ) : (
+              // Show 'No products found' if no filtered products and not right after scan
+              console.log('NO filtered products, rightafterscan = FALSE', rightAfterScan),
+              <p>No products found</p>
+            )}
+          </ProductGrid>
+
+
+          {/* Filter Modal */}
+          {isFilterModalOpen && (
+            <ModalOverlay onClick={() => setIsFilterModalOpen(false)}>
+              <ModalContent onClick={(e) => e.stopPropagation()}>
+                <h3>Filter Products</h3>
+                <ModalInput
+                  type="number"
+                  value={minPrice}
+                  onChange={(e) => setMinPrice(e.target.value)}
+                  placeholder="Min Price"
+                />
+                <ModalInput
+                  type="number"
+                  value={maxPrice}
+                  onChange={(e) => setMaxPrice(e.target.value)}
+                  placeholder="Max Price"
+                />
+                <div>
+                  <ModalButton onClick={() => handleFilter(analysis.products, minPrice, maxPrice, setFilteredProducts, setIsFilterModalOpen, setErrorMessage)}>
+                    Apply
+                  </ModalButton>
+                  <ModalButton onClick={() => setIsFilterModalOpen(false)}>Cancel</ModalButton>
+                  <ModalButton onClick={() => resetFilters(setMinPrice, setMaxPrice, setFilteredProducts, analysis.products, setIsFilterModalOpen, setErrorMessage)} style={{ backgroundColor: "#f44336", color: "white" }}>
+                    Reset Filters
+                  </ModalButton>
+                </div>
+
+                {errorMessage && <ErrorText>{errorMessage}</ErrorText>}
+              </ModalContent>
+            </ModalOverlay>
           )}
-        </ProductCard>
-      );
-    })}
-  </ProductGrid>
-
-  {/* Filter Modal */}
-  {isFilterModalOpen && (
-    <ModalOverlay onClick={() => setIsFilterModalOpen(false)}>
-      <ModalContent onClick={(e) => e.stopPropagation()}>
-        <h3>Filter Products</h3>
-        <ModalInput
-          type="number"
-          value={minPrice}
-          onChange={(e) => setMinPrice(e.target.value)}
-          placeholder="Min Price"
-        />
-        <ModalInput
-          type="number"
-          value={maxPrice}
-          onChange={(e) => setMaxPrice(e.target.value)}
-          placeholder="Max Price"
-        />
-        <div>
-          <ModalButton onClick={() => handleFilter(analysis.products, minPrice, maxPrice, setFilteredProducts, setIsFilterModalOpen, setErrorMessage)}>
-            Apply
-          </ModalButton>
-          <ModalButton onClick={() => setIsFilterModalOpen(false)}>Cancel</ModalButton>
-          <ModalButton onClick={() => resetFilters(setMinPrice, setMaxPrice, setFilteredProducts, analysis.products, setIsFilterModalOpen, setErrorMessage)} style={{ backgroundColor: "#f44336", color: "white" }}>
-            Reset Filters
-          </ModalButton>
-        </div>
-
-        {errorMessage && <ErrorText>{errorMessage}</ErrorText>}
-      </ModalContent>
-    </ModalOverlay>
-  )}
-</AnalysisSection>
+          </AnalysisSection>
         </AnalysisContainer>
       )}
     </Container>

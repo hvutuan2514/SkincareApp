@@ -4,7 +4,7 @@ export const validatePrice = (minPrice, maxPrice, setErrorMessage) => {
     const min = parseFloat(minPrice);
     const max = parseFloat(maxPrice);
   
-    if (min <= 0 || max <= 0) {
+    if (min < 0 || max < 0) {
       setErrorMessage("Price cannot be zero or negative.");
       return false;
     }
@@ -21,6 +21,14 @@ export const validatePrice = (minPrice, maxPrice, setErrorMessage) => {
     const min = parseFloat(minPrice);
     const max = parseFloat(maxPrice);
   
+    // Check for invalid value of $0
+    if (minPrice === "0" && maxPrice === "0") {
+      setFilteredProducts([]); // Set filtered products to empty
+      setIsFilterModalOpen(false); // Close modal after filtering
+      setErrorMessage(''); // Clear any previous errors
+      return;
+    }
+  
     if (!validatePrice(minPrice, maxPrice, setErrorMessage)) {
       return;
     }
@@ -34,6 +42,7 @@ export const validatePrice = (minPrice, maxPrice, setErrorMessage) => {
     setIsFilterModalOpen(false); // Close modal after filtering
     setErrorMessage(''); // Clear any previous errors
   };
+  
   
   export const resetFilters = (setMinPrice, setMaxPrice, setFilteredProducts, recommendedProducts, setIsFilterModalOpen, setErrorMessage) => {
     setMinPrice('');
