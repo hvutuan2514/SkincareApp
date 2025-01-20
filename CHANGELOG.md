@@ -39,3 +39,10 @@
     - allow min/max price to be 0 
 - SkinAnalys.js: added a filter button
 - utils/Filter.js (new file)
+    - if filters produce 0 results, show "no products found"
+    
+1/20/25 - Hannah
+Results.js:
+- Subquestions for the skin quiz succesfully shows products and ingredients
+- Displays products and ingredients even if the user doesn't select any skin concerns
+- Added a loading spinner

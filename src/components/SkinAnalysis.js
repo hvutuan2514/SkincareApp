@@ -12,13 +12,6 @@ const ErrorText = styled.p`
   margin-top: 10px;
 `;
 
-const ProductHeader = styled.div`
-  display: flex;
-  justify-content: space-between; /* Spreads the content out on opposite sides */
-  align-items: center; /* Vertically centers the items */
-  margin-bottom: 10px; /* Optional: Adjust for spacing between header and product grid */
-`;
-
 const FilterButton = styled.button`
   background-color: #4CAF50;
   color: white;
@@ -367,11 +360,13 @@ function SkinAnalysis() {
       console.log("data result", data.result);
       console.log("Detected Concerns (Formatted): \n", detectedConcerns);
       console.log("Skin Concerns (Unformatted): \n", skinConcerns);
+
+      const concernNames = detectedConcerns.map(concern => concern.name);
       
       const ingredients = await fetchIngredients(
-        detectedSkinType,
+        detectedSkinType.name,
         false, // Default to non-sensitive skin
-        detectedConcerns,
+        concernNames,
         {} // Default to general subtypes
       );
 

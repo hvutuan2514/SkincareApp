@@ -15,7 +15,7 @@ export const fetchIngredients = async (skinType, isSensitive, concerns, concernT
       .select(`
         ingredients:ingredient_id (name)
       `)
-      .eq('skin_type_id', skinType?.id)
+      .eq('skin_type_id', skinTypeData?.id)
       .eq('is_sensitive', isSensitive);
   
     // Fetch concern IDS
@@ -68,7 +68,7 @@ export const fetchRecommendedProducts = async (requiredIngredients) => {
   // Convert string with single quotes to proper array
   const parseIngredients = (ingredientsStr) => {
     return ingredientsStr
-      .replace(/[\[\]']/g, '')
+      .replace(/[[\]']/g, '')
       .split(', ')
       .map(i => i.trim());
   };

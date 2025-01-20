@@ -171,11 +171,20 @@ const IngredientChip = styled.div`
   text-transform: capitalize;
 `;
 
+const LoadingSpinner = styled.div`
+  text-align: center;
+  padding: 20px;
+  color: #3498db;
+  font-size: 18px;
+`;
+
 function Results() {
   const location = useLocation();
   const { formData } = location.state || { formData: {} };
   const [recommendedIngredients, setRecommendedIngredients] = useState([]);
   const [recommendedProducts, setRecommendedProducts] = useState([]); // Changed from {} to []
+  const [loadingIngredients, setLoadingIngredients] = useState(true);
+  const [loadingProducts, setLoadingProducts] = useState(true);
 
   //Constants for filter
   const [filteredProducts, setFilteredProducts] = useState([]);
@@ -189,18 +198,23 @@ function Results() {
       try {
         if (!formData) return;
   
-        const { skinType, isSensitive, skinConcerns } = formData;
+        const { skinType, isSensitive, skinConcerns, concernTypes } = formData;
   
         const ingredients = await fetchIngredients(
           skinType,
           isSensitive,
           skinConcerns,
+          concernTypes, 
           {}
         );
-  
-        const products = await fetchRecommendedProducts(ingredients);
+
         setRecommendedIngredients(ingredients);
+        setLoadingIngredients(false);
+  
+        setLoadingProducts(true);
+        const products = await fetchRecommendedProducts(ingredients);
         setRecommendedProducts(products); // Ensure this is an array
+        setLoadingProducts(false);
         setFilteredProducts(products); // Initialize filtered list with all products
       } catch (error) {
         console.error('Error fetching recommendations:', error);
@@ -243,7 +257,6 @@ function Results() {
         <h2>Your Skin Profile</h2>
         <UserProfile>
           <p><strong>Skin Type:</strong> {formData.skinType}</p>
-          <p><strong>Skin Color:</strong> {formData.skinColor}</p>
           <p><strong>Sensitive Skin:</strong> {formData.isSensitive ? 'Yes' : 'No'}</p>
           <p>
             <strong>Your Skin Concerns:</strong>{" "}
@@ -264,63 +277,70 @@ function Results() {
 
       <Section>
         <h2>Recommended Ingredients</h2>
-        <IngredientList>
-          {recommendedIngredients.map((ingredient, index) => (
-            <Ingredient key={index}>
-              {ingredient}
-            </Ingredient>
-          ))}
-        </IngredientList>
+        {loadingIngredients ? (
+          <LoadingSpinner>Finding the best ingredients for your skin...</LoadingSpinner>
+        ) : (
+          <IngredientList>
+            {recommendedIngredients.map((ingredient, index) => (
+              <Ingredient key={index}>{ingredient}</Ingredient>
+            ))}
+          </IngredientList>
+        )}
       </Section>
 
       <Section>
         <h2>Recommended Products</h2>
-        <FilterButton onClick={() => setIsFilterModalOpen(true)}>Filter By Price</FilterButton>
+        {loadingProducts ? (
+          <LoadingSpinner>Searching for products that match the ingredients..</LoadingSpinner>
+        ) : (
+          <>
+            <FilterButton onClick={() => setIsFilterModalOpen(true)}>Filter By Price</FilterButton>
+            <ProductSection>
+            {filteredProducts.length > 0 ? (
+                filteredProducts.map((product, index) => {
+                  const { product_name, price, clean_ingreds, product_url } = product;
 
-        <ProductSection>
-        {filteredProducts.length > 0 ? (
-            filteredProducts.map((product, index) => {
-              const { product_name, price, clean_ingreds, product_url } = product;
+                  if (!product_name || !price || !clean_ingreds || !product_url) {
+                    console.warn(`Product missing required fields:`, product);
+                    return null;
+                }
 
-              if (!product_name || !price || !clean_ingreds || !product_url) {
-                console.warn(`Product missing required fields:`, product);
-                return null;
-              }
+                // Parse the product's ingredients
+                const productIngredients = clean_ingreds
+                  .replace(/[[\]']/g, '')  // Clean up the ingredients string
+                  .split(', ')               // Split into array
+                  .map(i => i.trim());       // Trim whitespace
 
-            // Parse the product's ingredients
-            const productIngredients = clean_ingreds
-              .replace(/[\[\]']/g, '')  // Clean up the ingredients string
-              .split(', ')               // Split into array
-              .map(i => i.trim());       // Trim whitespace
+                // Check which recommended ingredients the recommended product contains (match)
+                const matchingIngredients = getMatchingIngredients(productIngredients, recommendedIngredients, product_name);
+                console.log(`Required Ingredients found in Recommended Product #${index + 1}:\n`, matchingIngredients);
 
-            // Check which recommended ingredients the recommended product contains (match)
-            const matchingIngredients = getMatchingIngredients(productIngredients, recommendedIngredients, product_name);
-            console.log(`Required Ingredients found in Recommended Product #${index + 1}:\n`, matchingIngredients);
+                return (
+                  <ProductCard key={index}>
+                    <h3>{product_name}</h3>
+                    <p><strong>Price:</strong> {price}</p>
 
-            return (
-              <ProductCard key={index}>
-                <h3>{product_name}</h3>
-                <p><strong>Price:</strong> {price}</p>
+                    {/* Display matching ingredients as circular chips */}
+                    {matchingIngredients.length > 0 && (
+                      <IngredientChipContainer>
+                        {matchingIngredients.map((ingredient, idx) => (
+                          <IngredientChip key={idx}>{ingredient}</IngredientChip>
+                        ))}
+                      </IngredientChipContainer>
+                    )}
 
-                {/* Display matching ingredients as circular chips */}
-                {matchingIngredients.length > 0 && (
-                  <IngredientChipContainer>
-                    {matchingIngredients.map((ingredient, idx) => (
-                      <IngredientChip key={idx}>{ingredient}</IngredientChip>
-                    ))}
-                  </IngredientChipContainer>
-                )}
-
-                <ProductLink href={product_url} target="_blank" rel="noopener noreferrer">
-                  Buy Now
-                </ProductLink>
-              </ProductCard>
-            );
-          })
-          ) : (
-            <p>No products found.</p>
-          )}
-        </ProductSection>
+                    <ProductLink href={product_url} target="_blank" rel="noopener noreferrer">
+                      Buy Now
+                    </ProductLink>
+                  </ProductCard>
+                );
+              })
+              ) : (
+                <p>No products found.</p>
+              )}
+            </ProductSection>
+          </>
+        )}
       </Section>
 
       {/* Filter Modal */}

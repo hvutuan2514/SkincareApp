@@ -46,16 +46,16 @@ const concernSubQuestions = {
   'Acne': {
     question: 'What type of acne do you have?',
     options: [
-      { value: 'red-inflamed', label: 'Red, inflamed bumps' },
-      { value: 'pus-filled', label: 'Pus-filled pimples' }
+      { value: 'red_inflamed', label: 'Red, inflamed bumps' },
+      { value: 'pus_filled', label: 'Pus-filled pimples' }
     ]
   },
   'Dark Circles': {
     question: 'What is the main cause of your dark circles?',
     options: [
-      { value: 'lack-of-sleep', label: 'Lack of sleep' },
+      { value: 'lack_of_sleep', label: 'Lack of sleep' },
       { value: 'genetics', label: 'Genetics' },
-      { value: 'sun-damage', label: 'Sun damage' },
+      { value: 'sun_damage', label: 'Sun damage' },
       { value: 'aging', label: 'Aging' }
     ]
   },
@@ -63,7 +63,7 @@ const concernSubQuestions = {
     question: 'What caused your dark spots?',
     options: [
       { value: 'acne', label: 'Acne' },
-      { value: 'sun-damage', label: 'Sun damage' },
+      { value: 'sun_damage', label: 'Sun damage' },
       { value: 'pregnancy', label: 'Pregnancy' },
       { value: 'aging', label: 'Aging' }
     ]
@@ -71,9 +71,9 @@ const concernSubQuestions = {
   'Forehead Pores': {
     question: 'How enlarged are your forehead pores?',
     options: [
-      { value: 'very-enlarged', label: 'Very enlarged' },
+      { value: 'very_enlarged', label: 'Very enlarged' },
       { value: 'enlarged', label: 'Enlarged' },
-      { value: 'slightly-enlarged', label: 'Slightly enlarged' }
+      { value: 'slightly_enlarged', label: 'Slightly enlarged' }
     ]
   },
   'Forehead Wrinkles': {
@@ -81,7 +81,7 @@ const concernSubQuestions = {
     options: [
       { value: 'prevent', label: 'Want to prevent early' },
       { value: 'recent', label: 'Recently appeared' },
-      { value: 'long-term', label: 'Had them for years' }
+      { value: 'long_term', label: 'Had them for years' }
     ]
   },
   'Eye Fine Lines': {
@@ -95,25 +95,25 @@ const concernSubQuestions = {
   'Left Cheek Pores': {
     question: 'How enlarged are your left cheek pores?',
     options: [
-      { value: 'very-enlarged', label: 'Very enlarged' },
+      { value: 'very_enlarged', label: 'Very enlarged' },
       { value: 'enlarged', label: 'Enlarged' },
-      { value: 'slightly-enlarged', label: 'Slightly enlarged' }
+      { value: 'slightly_enlarged', label: 'Slightly enlarged' }
     ]
   },
   'Right Cheek Pores': {
     question: 'How enlarged are your right cheek pores?',
     options: [
-      { value: 'very-enlarged', label: 'Very enlarged' },
+      { value: 'very_enlarged', label: 'Very enlarged' },
       { value: 'enlarged', label: 'Enlarged' },
-      { value: 'slightly-enlarged', label: 'Slightly enlarged' }
+      { value: 'slightly_enlarged', label: 'Slightly enlarged' }
     ]
   },
   'Jaw Pores': {
     question: 'How enlarged are your jaw pores?',
     options: [
-      { value: 'very-enlarged', label: 'Very enlarged' },
+      { value: 'very_enlarged', label: 'Very enlarged' },
       { value: 'enlarged', label: 'Enlarged' },
-      { value: 'slightly-enlarged', label: 'Slightly enlarged' }
+      { value: 'slightly_enlarged', label: 'Slightly enlarged' }
     ]
   }
 };
