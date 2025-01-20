@@ -274,10 +274,10 @@ function SkinAnalysis() {
   //Indicates whether the scan just happened or not. Is set to false once the user adds a filter.
   const [rightAfterScan, setRightAfterScan] = useState(true); 
   useEffect(() => {
-    if (filteredProducts.length > 0) {
-      setRightAfterScan(false); // Set it to false once a filter is applied
+    if (minPrice || maxPrice) { // If the user inputs filter options, consider the filter used.
+      setRightAfterScan(false); // Set right after scan to false when any filter is applied
     }
-  }, [filteredProducts]);
+  }, [minPrice, maxPrice]);
 
 
 
@@ -597,7 +597,7 @@ function SkinAnalysis() {
             ) : (
               // Show 'No products found' if no filtered products and not right after scan
               console.log('NO filtered products, rightafterscan = FALSE', rightAfterScan),
-              <p>No products found</p>
+              <p>No products found.</p>
             )}
           </ProductGrid>
 
