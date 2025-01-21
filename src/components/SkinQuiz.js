@@ -158,7 +158,7 @@ function SkinQuiz() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    navigate('/results', { state: { formData } });
+    navigate('/quiz-results', { state: { formData } });
   };
 
   const renderCheckboxGroup = (options, selectedOptions, fieldName) => {

@@ -58,12 +58,16 @@ export const fetchIngredients = async (skinType, isSensitive, concerns, concernT
     return uniqueIngredients;
 };
 
-export const fetchRecommendedProducts = async (requiredIngredients) => {
+export const fetchRecommendedProducts = async (requiredIngredients, routineSteps) => {
   if (!requiredIngredients?.length) return [];
 
-  const { data: products } = await supabase
-    .from('products')
-    .select('*');
+  let query = supabase.from('products').select('*');
+  
+  if (routineSteps && routineSteps.length > 0) {
+    query = query.filter('product_type', 'in', `(${routineSteps.join(',')})`);
+  }
+
+  const { data: products } = await query;
 
   // Convert string with single quotes to proper array
   const parseIngredients = (ingredientsStr) => {

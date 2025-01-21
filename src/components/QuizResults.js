@@ -197,7 +197,7 @@ function QuizResults() {
       try {
         if (!formData) return;
   
-        const { skinType, isSensitive, skinConcerns, concernTypes } = formData;
+        const { skinType, isSensitive, skinConcerns, concernTypes, routine} = formData;
   
         const ingredients = await fetchIngredients(
           skinType,
@@ -211,7 +211,7 @@ function QuizResults() {
         setLoadingIngredients(false);
   
         setLoadingProducts(true);
-        const products = await fetchRecommendedProducts(ingredients);
+        const products = await fetchRecommendedProducts(ingredients, routine);
         setRecommendedProducts(products); // Ensure this is an array
         setLoadingProducts(false);
         setFilteredProducts(products); // Initialize filtered list with all products

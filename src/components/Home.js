@@ -60,11 +60,11 @@ function Home() {
     <PageContainer>
       <Title>Discover Your Perfect Skincare Routine</Title>
       <OptionContainer>
-        <Option to="/quiz">
+        <Option to="/skin-quiz">
           <h2>Skin Quiz</h2>
           <p>Answer specific questions about your skin</p>
         </Option>
-        <Option to="/analysis">
+        <Option to="/skin-analysis">
           <h2>AI Skin Analysis</h2>
           <p>Upload a photo for instant analysis</p>
         </Option>

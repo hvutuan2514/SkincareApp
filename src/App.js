@@ -10,8 +10,8 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
-      <Route path="/quiz" element={<SkinQuiz />} />
-      <Route path="/analysis" element={<SkinAnalysis />} />
+      <Route path="/skin-quiz" element={<SkinQuiz />} />
+      <Route path="/skin-analysis" element={<SkinAnalysis />} />
       <Route path="/quiz-results" element={<QuizResults />} />
       <Route path="/analysis-results" element={<AnalysisResults />} />
     </Routes>
