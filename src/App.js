@@ -3,7 +3,8 @@ import { Routes, Route } from 'react-router-dom';
 import Home from './components/Home';
 import SkinQuiz from './components/SkinQuiz';
 import SkinAnalysis from './components/SkinAnalysis';
-import Results from './components/Results';
+import QuizResults from './components/QuizResults';
+import AnalysisResults from './components/AnalysisResults';
 
 function App() {
   return (
@@ -11,7 +12,8 @@ function App() {
       <Route path="/" element={<Home />} />
       <Route path="/quiz" element={<SkinQuiz />} />
       <Route path="/analysis" element={<SkinAnalysis />} />
-      <Route path="/results" element={<Results />} />
+      <Route path="/quiz-results" element={<QuizResults />} />
+      <Route path="/analysis-results" element={<AnalysisResults />} />
     </Routes>
   );
 }

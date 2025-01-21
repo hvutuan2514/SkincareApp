@@ -5,7 +5,6 @@ import styled from 'styled-components';
 import { fetchIngredients, fetchRecommendedProducts } from '../utils/ConcernToProduct';
 import { handleFilter, resetFilters } from '../utils/Filters';
 
-
 const ErrorText = styled.p`
   color: red;
   font-size: 0.9rem;
@@ -178,7 +177,7 @@ const LoadingSpinner = styled.div`
   font-size: 18px;
 `;
 
-function Results() {
+function QuizResults() {
   const location = useLocation();
   const { formData } = location.state || { formData: {} };
   const [recommendedIngredients, setRecommendedIngredients] = useState([]);
@@ -376,4 +375,4 @@ function Results() {
   );
 }
 
-export default Results;
+export default QuizResults;

@@ -46,3 +46,4 @@ Results.js:
 - Subquestions for the skin quiz succesfully shows products and ingredients
 - Displays products and ingredients even if the user doesn't select any skin concerns
 - Added a loading spinner
+- Split SkinAnalysis.js into two files, analysis + results
